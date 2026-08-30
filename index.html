@@ -1,0 +1,2566 @@
+```html
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daily income — উপার্জন করুন, প্রতিদিন</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
+    </script>
+    <style>
+        /* ===== স্টাইল ===== */
+        :root {
+            --tg-blue: #2AABEE;
+            --tg-dark-blue: #1A8FCC;
+            --tg-bg: #F0F4F8;
+            --tg-card: #FFFFFF;
+            --tg-navy: #17212B;
+            --tg-navy-light: #1E2D3D;
+            --tg-text: #1A1A2E;
+            --tg-text-sec: #6B7280;
+            --tg-accent: #00C851;
+            --tg-danger: #FF3B30;
+            --tg-warning: #FF9500;
+            --tg-gold: #F59E0B;
+            --tg-silver: #9CA3AF;
+            --tg-bronze: #CD7F32;
+            --tg-platinum: #8B5CF6;
+            --grad-primary: linear-gradient(135deg, #2AABEE 0%, #1A73E8 100%);
+            --grad-earn: linear-gradient(135deg, #00C851 0%, #00A040 100%);
+            --grad-gold: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            --grad-purple: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, .06);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, .08), 0 1px 3px rgba(0, 0, 0, .05);
+            --shadow-blue: 0 8px 24px rgba(42, 171, 238, .25);
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 18px;
+            --radius-xl: 22px;
+        }
+        body.dark-mode {
+            --tg-bg: #0F172A;
+            --tg-card: #1E293B;
+            --tg-text: #F8FAFC;
+            --tg-text-sec: #94A3B8;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        html, body { height:100%; overflow-x:hidden; background:var(--tg-bg); color:var(--tg-text); font-family:'Hind Siliguri',sans-serif; font-size:15px; line-height:1.5; transition:background .3s,color .3s; }
+        .num, .poppins { font-family:'Poppins',sans-serif; font-variant-numeric:tabular-nums; }
+        button, .btn { font-family:inherit; border:none; background:none; cursor:pointer; color:inherit; transition:transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, opacity .15s ease; }
+        button:active, .btn:active { transform:scale(.94) translateY(1px); box-shadow:0 2px 6px rgba(0,0,0,.12)!important; }
+        button:disabled { opacity:.55; cursor:not-allowed; }
+        #app { max-width:480px; margin:0 auto; min-height:100vh; background:var(--tg-bg); position:relative; padding-bottom:88px; }
+        /* Auth Container */
+        #authContainer { position:fixed; inset:0; background:#fff; z-index:9990; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; overflow-y:auto; }
+        .auth-box { width:100%; max-width:380px; background:#fff; padding:20px; border-radius:18px; box-shadow:var(--shadow-md); }
+        .auth-header { text-align:center; margin-bottom:20px; }
+        .auth-header h2 { font-size:22px; color:var(--tg-blue); margin-bottom:4px; }
+        .auth-header p { font-size:13px; color:var(--tg-text-sec); }
+        .auth-box .input-grp { margin-bottom:12px; }
+        .auth-box label { font-size:12px; font-weight:600; color:var(--tg-text-sec); display:block; margin-bottom:4px; }
+        .auth-box input, .auth-box textarea { width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; outline:none; font-family:inherit; background:#fff; }
+        .auth-box input:focus, .auth-box textarea:focus { border-color:var(--tg-blue); }
+        .auth-links { display:flex; justify-content:space-between; align-items:center; margin-top:14px; font-size:13px; }
+        .auth-links a { color:var(--tg-blue); text-decoration:none; font-weight:600; cursor:pointer; }
+        /* Chat */
+        .chat-box { height:220px; overflow-y:auto; border:1px solid #e5e7eb; border-radius:10px; padding:10px; background:#f9fafb; margin-bottom:10px; display:flex; flex-direction:column; gap:8px; }
+        .chat-msg { max-width:80%; padding:8px 12px; border-radius:12px; font-size:13px; line-height:1.4; word-break:break-word; }
+        .chat-msg.user { align-self:flex-end; background:var(--tg-blue); color:#fff; border-bottom-right-radius:2px; }
+        .chat-msg.admin { align-self:flex-start; background:#e5e7eb; color:var(--tg-text); border-bottom-left-radius:2px; }
+        .chat-msg .time { font-size:9px; opacity:.75; display:block; text-align:right; margin-top:2px; }
+        .chat-input-wrap { display:flex; gap:6px; }
+        .chat-input-wrap input { flex:1; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; }
+        .chat-input-wrap button { background:var(--tg-blue); color:#fff; padding:0 16px; border-radius:8px; font-weight:600; }
+        /* Loader */
+        #loader { position:fixed; inset:0; background:var(--grad-primary); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; color:#fff; }
+        #loader .logo-wrap { text-align:center; margin-bottom:32px; }
+        #loader .logo { font-size:38px; font-weight:800; font-family:'Poppins',sans-serif; letter-spacing:.5px; margin-bottom:4px; }
+        #loader .logo span { opacity:.85; }
+        #loader .tag { opacity:.85; font-size:14px; font-weight:500; }
+        #loader .loader-icon { width:20px; height:20px; border:3px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:rot .75s linear infinite; }
+        @keyframes rot { to { transform:rotate(360deg); } }
+        /* Header */
+        .header { display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--tg-card); border-bottom:1px solid rgba(0,0,0,.05); position:sticky; top:0; z-index:50; box-shadow:0 1px 8px rgba(0,0,0,.05); }
+        .header .avatar { width:40px; height:40px; border-radius:50%; background:var(--grad-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; overflow:hidden; border:2px solid rgba(42,171,238,.3); flex-shrink:0; cursor:pointer; }
+        .header .avatar img { width:100%; height:100%; object-fit:cover; }
+        .header .info { flex:1; min-width:0; }
+        .header .name { font-weight:700; font-size:14px; color:var(--tg-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .header .uid { font-size:11px; color:var(--tg-text-sec); font-family:'Poppins',sans-serif; }
+        .header .hbtn { width:36px; height:36px; border-radius:50%; background:#f3f6f9; display:flex; align-items:center; justify-content:center; font-size:19px; color:var(--tg-blue); position:relative; transition:background .2s; }
+        body.dark-mode .header .hbtn { background:#334155; }
+        .header .hbtn:active { background:#e6f0fa; }
+        .header .hbtn .dot { position:absolute; top:5px; right:5px; width:8px; height:8px; background:var(--tg-danger); border-radius:50%; border:2px solid #fff; animation:popIn .3s cubic-bezier(.34,1.56,.64,1); }
+        @keyframes popIn { from { transform:scale(0); } to { transform:scale(1); } }
+        /* Sidebar */
+        .sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:9998; display:none; backdrop-filter:blur(3px); }
+        .sidebar-overlay.open { display:block; }
+        .sidebar { position:fixed; top:0; left:-300px; width:280px; height:100%; background:var(--tg-card); z-index:9999; transition:left .3s ease; padding:20px; overflow-y:auto; box-shadow:4px 0 16px rgba(0,0,0,.15); }
+        .sidebar.open { left:0; }
+        .sidebar-profile { text-align:center; padding-bottom:15px; border-bottom:1px solid var(--tg-text-sec); }
+        .sidebar-avatar { width:70px; height:70px; border-radius:50%; margin:0 auto 10px; position:relative; overflow:hidden; border:2px solid var(--tg-blue); cursor:pointer; }
+        .sidebar-avatar img { width:100%; height:100%; object-fit:cover; }
+        .sidebar-avatar .upload-icon { position:absolute; bottom:0; inset-x:0; background:rgba(0,0,0,.5); color:#fff; font-size:12px; padding:2px 0; }
+        .sidebar-section { margin-top:15px; }
+        .sidebar-section-title { font-weight:700; font-size:13px; color:var(--tg-text-sec); margin-bottom:8px; text-transform:uppercase; }
+        .theme-toggle-wrap { display:flex; align-items:center; justify-content:space-between; padding:10px; background:rgba(0,0,0,.04); border-radius:10px; margin-bottom:15px; }
+        body.dark-mode .theme-toggle-wrap { background:rgba(255,255,255,.05); }
+        .switch { position:relative; display:inline-block; width:44px; height:24px; }
+        .switch input { opacity:0; width:0; height:0; }
+        .slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:24px; }
+        .slider:before { position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background-color:#fff; transition:.4s; border-radius:50%; }
+        input:checked+.slider { background-color:var(--tg-blue); }
+        input:checked+.slider:before { transform:translateX(20px); }
+        /* Tabs */
+        .tab-panel { display:none; padding:14px 14px 6px; animation:fadeSlideUp .22s ease-out; }
+        .tab-panel.active { display:block; }
+        @keyframes fadeSlideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+        /* Cards */
+        .card { background:var(--tg-card); border-radius:var(--radius-lg); padding:16px; box-shadow:var(--shadow-md); transition:transform .2s, box-shadow .2s; }
+        .card+.card { margin-top:12px; }
+        .stagger>* { opacity:0; animation:fadeSlideUp .4s ease-out forwards; }
+        .stagger>*:nth-child(1) { animation-delay:.05s; }
+        .stagger>*:nth-child(2) { animation-delay:.1s; }
+        .stagger>*:nth-child(3) { animation-delay:.15s; }
+        .stagger>*:nth-child(4) { animation-delay:.2s; }
+        .stagger>*:nth-child(5) { animation-delay:.25s; }
+        .stagger>*:nth-child(6) { animation-delay:.3s; }
+        /* Balance Card */
+        .balance-card { background:var(--grad-primary); color:#fff; border-radius:var(--radius-xl); padding:20px; position:relative; overflow:hidden; box-shadow:var(--shadow-blue); }
+        .balance-card .bg-circle { position:absolute; border-radius:50%; background:rgba(255,255,255,.07); pointer-events:none; }
+        .balance-card .bg-circle.c1 { width:180px; height:180px; top:-70px; right:-50px; animation:float 7s ease-in-out infinite; }
+        .balance-card .bg-circle.c2 { width:110px; height:110px; bottom:-40px; left:-30px; animation:float 9s ease-in-out infinite; animation-delay:-4s; }
+        .balance-card .bg-circle.c3 { width:60px; height:60px; bottom:20px; right:60px; animation:float 5s ease-in-out infinite; animation-delay:-2s; }
+        @keyframes float { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(8px,-12px) scale(1.05); } }
+        .balance-card .vip-badge { display:inline-flex; align-items:center; gap:5px; background:rgba(255,255,255,.18); backdrop-filter:blur(8px); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:10px; border:1px solid rgba(255,255,255,.2); }
+        .balance-card .vip-badge i { font-size:14px; }
+        .balance-card .bal-label { opacity:.85; font-size:13px; font-weight:500; margin-bottom:2px; }
+        .balance-card .amount { font-size:36px; font-weight:800; font-family:'Poppins',sans-serif; letter-spacing:-.5px; margin:4px 0 8px; }
+        .balance-card .bal-sub { display:flex; align-items:center; gap:6px; opacity:.85; font-size:12px; font-weight:500; }
+        .balance-card .bal-sub i { font-size:15px; }
+        /* Quick Actions */
+        .qa-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:14px; }
+        .qa { background:var(--tg-card); border-radius:var(--radius-md); padding:12px 6px 10px; display:flex; flex-direction:column; align-items:center; gap:5px; box-shadow:var(--shadow-sm); font-size:11px; font-weight:700; color:var(--tg-text); transition:transform .2s, box-shadow .2s; }
+        .qa:active { transform:scale(.95)!important; }
+        .qa .qa-icon { width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,#e8f4fd,#d4eafa); display:flex; align-items:center; justify-content:center; }
+        .qa .qa-icon i { font-size:22px; color:var(--tg-blue); }
+        /* Stats Row */
+        .stats-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+        .stat-box { background:var(--tg-card); border-radius:var(--radius-md); padding:13px 12px; display:flex; align-items:center; gap:10px; box-shadow:var(--shadow-sm); }
+        .stat-box .ic { width:40px; height:40px; border-radius:11px; background:linear-gradient(135deg,#e8f4fd,#d4eafa); color:var(--tg-blue); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+        .stat-box .ic.green { background:linear-gradient(135deg,#dcfce7,#bbf7d0); color:var(--tg-accent); }
+        .stat-box .lbl { font-size:11px; color:var(--tg-text-sec); font-weight:500; }
+        .stat-box .val { font-family:'Poppins',sans-serif; font-weight:700; font-size:15px; color:var(--tg-text); }
+        /* Section Title */
+        .sec-title { font-weight:700; font-size:13px; margin:18px 2px 10px; color:var(--tg-text); display:flex; align-items:center; gap:7px; text-transform:uppercase; letter-spacing:.5px; }
+        .sec-title i { font-size:17px; color:var(--tg-blue); }
+        /* Streak */
+        .streak { display:flex; justify-content:space-between; gap:4px; }
+        .streak .day { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+        .streak .circle { width:36px; height:36px; border-radius:50%; background:#eef2f7; display:flex; align-items:center; justify-content:center; color:#9aa5b1; font-weight:700; font-family:'Poppins',sans-serif; font-size:12px; border:2px solid transparent; transition:all .3s; }
+        body.dark-mode .streak .circle { background:#334155; color:#94A3B8; }
+        .streak .circle.done { background:var(--tg-blue); color:#fff; border-color:var(--tg-dark-blue); }
+        .streak .circle.done i { font-size:16px; }
+        .streak .circle.today { background:var(--tg-card); border-color:var(--tg-blue); color:var(--tg-blue); box-shadow:0 0 0 4px rgba(42,171,238,.15); animation:pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100% { box-shadow:0 0 0 3px rgba(42,171,238,.3); } 50% { box-shadow:0 0 0 8px rgba(42,171,238,.08); } }
+        .streak .lbl { font-size:9px; color:var(--tg-text-sec); font-weight:600; text-transform:uppercase; }
+        /* Ad Card */
+        .ad-card { background:var(--tg-card); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-md); border:1px solid rgba(42,171,238,.1); }
+        .ad-card .ad-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+        .ad-card .ad-ic { width:52px; height:52px; border-radius:14px; background:var(--grad-primary); display:flex; align-items:center; justify-content:center; color:#fff; font-size:26px; flex-shrink:0; box-shadow:0 6px 16px rgba(42,171,238,.35); }
+        .ad-card .ad-info .title { font-weight:700; font-size:16px; color:var(--tg-text); }
+        .ad-card .ad-info .desc { color:var(--tg-text-sec); font-size:13px; margin-top:1px; }
+        .btn-big { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; background:var(--grad-primary); color:#fff; padding:14px; border-radius:var(--radius-md); font-weight:700; font-size:15px; box-shadow:var(--shadow-blue); transition:all .2s; }
+        .btn-big:active { transform:scale(.97)!important; }
+        .btn-big i { font-size:21px; }
+        .progress-wrap { margin-top:14px; }
+        .progress-lbl { display:flex; justify-content:space-between; font-size:11px; color:var(--tg-text-sec); margin-bottom:6px; font-weight:600; }
+        .progress-bar { height:7px; background:#eef2f7; border-radius:10px; overflow:hidden; }
+        body.dark-mode .progress-bar { background:#334155; }
+        .progress-bar .fill { height:100%; background:var(--grad-primary); border-radius:10px; transition:width .5s cubic-bezier(.4,0,.2,1); }
+        /* Ad Market */
+        .ad-m-item { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; background:var(--tg-card); border-radius:12px; margin-bottom:10px; box-shadow:var(--shadow-sm); border:1px solid rgba(0,0,0,.05); }
+        .ad-m-info { flex:1; }
+        .ad-m-info .t { font-weight:700; font-size:14px; }
+        .ad-m-info .am { color:var(--tg-accent); font-weight:700; font-size:13px; font-family:'Poppins'; }
+        .ad-m-btns { display:flex; gap:5px; }
+        .btn-small { padding:6px 10px; border-radius:8px; font-size:11px; font-weight:700; display:flex; align-items:center; gap:4px; }
+        .btn-view { background:var(--tg-blue); color:#fff; }
+        .btn-ss { background:var(--tg-warning); color:#fff; }
+        /* Bottom Nav */
+        .botnav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:var(--tg-card); display:flex; justify-content:space-around; padding:10px 8px 18px; z-index:100; border-radius:24px 24px 0 0; box-shadow:0 -4px 24px rgba(0,0,0,.10),0 -1px 0 rgba(0,0,0,.06); }
+        .botnav .nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px; color:#9AA5B4; font-size:10px; font-weight:600; border-radius:16px; border:none; background:transparent; transition:all .22s cubic-bezier(.4,0,.2,1); cursor:pointer; position:relative; }
+        .botnav .nav-item .nav-icon { width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:14px; transition:all .22s cubic-bezier(.4,0,.2,1); background:transparent; }
+        .botnav .nav-item i { font-size:22px; transition:all .22s; filter:drop-shadow(0 0 0 transparent); }
+        .botnav .nav-item.active { color:#2563EB; }
+        .botnav .nav-item.active .nav-icon { background:linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 100%); box-shadow:0 2px 8px rgba(37,99,235,.18), inset 0 1px 0 rgba(255,255,255,.8); }
+        .botnav .nav-item.active i { color:#2563EB; filter:drop-shadow(0 1px 3px rgba(37,99,235,.35)); transform:scale(1.12); }
+        .botnav .nav-item:not(.active):hover .nav-icon { background:rgba(0,0,0,.04); }
+        /* Team/Referral */
+        .ref-link { background:#f3f6f9; border-radius:12px; padding:10px 12px; display:flex; align-items:center; gap:8px; margin-top:10px; border:1px solid #e8ecf0; }
+        body.dark-mode .ref-link { background:#334155; border-color:#475569; }
+        .ref-link input { flex:1; border:none; background:transparent; font-family:'Poppins',sans-serif; font-size:12px; color:var(--tg-text); outline:none; }
+        .ref-link button { background:var(--tg-blue); color:#fff; padding:8px 12px; border-radius:8px; font-weight:700; font-size:12px; display:flex; align-items:center; gap:4px; }
+        .ref-link button i { font-size:15px; }
+        .tg-share { margin-top:10px; width:100%; background:#0088cc; color:#fff; padding:12px; border-radius:12px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; font-size:14px; }
+        .tg-share i { font-size:20px; }
+        .tier-card { background:linear-gradient(135deg,var(--tg-card),#f7fbff); border-radius:var(--radius-md); padding:14px; margin-top:12px; border:1px solid rgba(42,171,238,.15); }
+        body.dark-mode .tier-card { background:linear-gradient(135deg,var(--tg-card),#1e293b); }
+        .tier-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+        .tier-item { background:#f7fafd; border-radius:10px; padding:10px 8px; text-align:center; font-size:12px; transition:all .2s; color:#1A1A2E; }
+        body.dark-mode .tier-item { background:#334155; color:#F8FAFC; }
+        .tier-item .t-icon { font-size:20px; margin-bottom:4px; }
+        .tier-item .t-icon i { font-size:22px; }
+        .tier-item .name { font-weight:700; font-size:13px; margin-bottom:2px; }
+        .tier-item.current { background:var(--grad-primary); color:#fff; box-shadow:var(--shadow-blue); }
+        /* Tasks */
+        .filter-pills { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:10px; scrollbar-width:none; }
+        .filter-pills::-webkit-scrollbar { display:none; }
+        .pill { padding:7px 14px; border-radius:20px; background:var(--tg-card); color:var(--tg-text); font-size:12px; font-weight:700; white-space:nowrap; border:1.5px solid #e6ecf2; cursor:pointer; transition:all .2s; }
+        body.dark-mode .pill { border-color:#334155; }
+        .pill.active { background:var(--tg-blue); color:#fff; border-color:var(--tg-blue); }
+        .task-row { display:flex; align-items:center; gap:10px; }
+        .task-row .icon { width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,#e8f4fd,#d4eafa); color:var(--tg-blue); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+        .task-row .info { flex:1; min-width:0; }
+        .task-row .t { font-weight:700; font-size:14px; }
+        .task-row .m { font-size:11px; color:var(--tg-text-sec); margin-top:2px; display:flex; align-items:center; gap:4px; }
+        .task-row .m i { font-size:13px; }
+        .task-row .act { background:var(--grad-primary); color:#fff; padding:8px 14px; border-radius:10px; font-weight:700; font-size:12px; white-space:nowrap; box-shadow:0 3px 8px rgba(42,171,238,.3); }
+        .task-row .act.done { background:var(--grad-earn); box-shadow:0 3px 8px rgba(0,200,81,.25); }
+        /* Leaderboard */
+        .podium { position:relative; height:250px; display:flex; align-items:flex-end; justify-content:center; gap:20px; padding-top:60px; margin:10px 0 20px; }
+        .podium .p { display:flex; flex-direction:column; align-items:center; gap:6px; position:relative; }
+        .podium .p .avt { border-radius:50%; background:var(--tg-card); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--tg-blue); overflow:hidden; font-family:'Poppins',sans-serif; }
+        .podium .p img { width:100%; height:100%; object-fit:cover; }
+        .podium .p .nm { font-size:12px; font-weight:700; max-width:90px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .podium .p .am { font-family:'Poppins',sans-serif; font-weight:700; font-size:13px; color:var(--tg-blue); }
+        .podium .p1 { order:2; }
+        .podium .p1 .avt { width:80px; height:80px; border:4px solid var(--tg-gold); box-shadow:0 0 0 2px rgba(245,158,11,.2),0 8px 20px rgba(245,158,11,.3); animation:floatBob 2.2s ease-in-out infinite; }
+        .podium .p1 .crown { position:absolute; top:-46px; left:50%; transform:translateX(-50%); font-size:30px; color:var(--tg-gold); filter:drop-shadow(0 3px 6px rgba(0,0,0,.15)); }
+        .podium .p1 .crown i { font-size:34px; }
+        .podium .p1 .nm { color:#B7791F; font-size:13px; }
+        .podium .p2 { order:1; margin-bottom:8px; }
+        .podium .p2 .avt { width:66px; height:66px; border:3px solid var(--tg-silver); animation:floatBob 2.6s ease-in-out infinite; }
+        .podium .p3 { order:3; margin-bottom:8px; }
+        .podium .p3 .avt { width:66px; height:66px; border:3px solid var(--tg-bronze); animation:floatBob 3s ease-in-out infinite; }
+        .podium .rank { position:absolute; bottom:-22px; left:50%; transform:translateX(-50%); background:var(--tg-card); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; font-family:'Poppins',sans-serif; color:var(--tg-text); box-shadow:0 2px 8px rgba(0,0,0,.12); }
+        @keyframes floatBob { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
+        .lb-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--tg-card); border-radius:12px; margin-bottom:6px; box-shadow:var(--shadow-sm); }
+        .lb-row.me { background:linear-gradient(135deg,#e6f4fe,#f0f8ff); border:1.5px solid rgba(42,171,238,.3); }
+        body.dark-mode .lb-row.me { background:linear-gradient(135deg,#1e293b,#0f172a); }
+        .lb-row .r { width:26px; text-align:center; font-weight:800; color:var(--tg-text-sec); font-family:'Poppins',sans-serif; font-size:13px; }
+        .lb-row .av { width:36px; height:36px; border-radius:50%; background:var(--grad-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; overflow:hidden; font-size:14px; flex-shrink:0; }
+        .lb-row .av img { width:100%; height:100%; object-fit:cover; }
+        .lb-row .nm { flex:1; font-weight:600; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .lb-row .am { font-family:'Poppins',sans-serif; font-weight:700; color:var(--tg-blue); font-size:13px; }
+        /* Wallet */
+        .method-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+        .method-card { background:var(--tg-card); border:2px solid #e6ecf2; border-radius:12px; padding:10px 6px; text-align:center; font-size:11px; font-weight:700; cursor:pointer; transition:all .2s; color:var(--tg-text); }
+        body.dark-mode .method-card { border-color:#334155; }
+        .method-card .ico { font-size:22px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; }
+        .method-card .ico i { font-size:26px; color:var(--tg-blue); }
+        .method-card.selected { border-color:var(--tg-blue); background:linear-gradient(135deg,#e6f4fe,#f0f8ff); color:var(--tg-blue); }
+        body.dark-mode .method-card.selected { background:linear-gradient(135deg,#1e293b,#0f172a); }
+        .input-grp { margin-bottom:12px; }
+        .input-grp label { display:block; font-size:12px; font-weight:700; margin-bottom:5px; color:var(--tg-text-sec); text-transform:uppercase; letter-spacing:.3px; }
+        .input-grp input, .input-grp select, .input-grp textarea { width:100%; padding:11px 13px; border:1.5px solid #e6ecf2; border-radius:10px; font-family:inherit; font-size:14px; background:var(--tg-card); outline:none; transition:border-color .2s, box-shadow .2s; color:var(--tg-text); }
+        body.dark-mode .input-grp input, body.dark-mode .input-grp select, body.dark-mode .input-grp textarea { border-color:#334155; }
+        .input-grp input:focus { border-color:var(--tg-blue); box-shadow:0 0 0 3px rgba(42,171,238,.12); }
+        .input-grp .hint { font-size:11px; color:var(--tg-text-sec); margin-top:4px; display:flex; align-items:center; gap:4px; }
+        .input-grp .hint i { font-size:13px; }
+        .btn-primary { background:var(--grad-primary); color:#fff; width:100%; padding:14px; border-radius:var(--radius-md); font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; font-size:15px; box-shadow:var(--shadow-blue); }
+        .btn-primary i { font-size:20px; }
+        .tx-row { display:flex; align-items:center; gap:10px; padding:11px 12px; background:var(--tg-card); border-radius:12px; margin-bottom:6px; box-shadow:var(--shadow-sm); }
+        .tx-row .ic { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+        .tx-row .ic.out { background:#fee2e2; color:var(--tg-danger); }
+        .tx-row .ic.in { background:#dcfce7; color:var(--tg-accent); }
+        .tx-row .ic.blue { background:#e6f4fe; color:var(--tg-blue); }
+        body.dark-mode .tx-row .ic.blue { background:#334155; }
+        .tx-row .info { flex:1; min-width:0; }
+        .tx-row .t { font-weight:600; font-size:13px; }
+        .tx-row .d { font-size:11px; color:var(--tg-text-sec); margin-top:1px; }
+        .tx-row .am { font-family:'Poppins',sans-serif; font-weight:700; font-size:13px; white-space:nowrap; }
+        .tx-row .am.in { color:var(--tg-accent); }
+        .tx-row .am.out { color:var(--tg-danger); }
+        .badge { padding:2px 8px; border-radius:8px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
+        .badge.pending { background:#fef3c7; color:#92400e; }
+        .badge.approved { background:#dcfce7; color:#166534; }
+        .badge.rejected { background:#fee2e2; color:#991b1b; }
+        /* Modals */
+        .modal { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:flex-end; justify-content:center; z-index:200; padding:0; backdrop-filter:blur(4px); }
+        .modal.open { display:flex; animation:fadeIn .2s ease-out; }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        .modal-body { background:var(--tg-card); width:100%; max-width:480px; border-radius:22px 22px 0 0; padding:20px; max-height:92vh; overflow-y:auto; animation:slideUp .3s cubic-bezier(.34,1.56,.64,1); }
+        @keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+        .modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+        .modal-head .t { font-weight:700; font-size:17px; display:flex; align-items:center; gap:8px; }
+        .modal-head .t i { font-size:22px; color:var(--tg-blue); }
+        .modal-head .x { width:32px; height:32px; border-radius:50%; background:#f3f6f9; display:flex; align-items:center; justify-content:center; font-size:18px; color:var(--tg-text-sec); }
+        body.dark-mode .modal-head .x { background:#334155; }
+        /* Market */
+        .market-grid { display:grid; grid-template-columns:1fr; gap:10px; }
+        .market-item { background:#f7fafd; border:1.5px solid #e6ecf2; border-radius:var(--radius-md); padding:14px; display:flex; align-items:center; gap:12px; }
+        body.dark-mode .market-item { background:#334155; border-color:#475569; }
+        .market-item .ico { width:50px; height:50px; border-radius:13px; background:var(--grad-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; box-shadow:0 4px 12px rgba(42,171,238,.3); }
+        .market-item .ico i { font-size:26px; }
+        .market-item .info { flex:1; }
+        .market-item .t { font-weight:700; font-size:14px; }
+        .market-item .p { color:var(--tg-blue); font-family:'Poppins',sans-serif; font-weight:800; font-size:16px; margin-top:2px; }
+        /* Spin */
+        #spinCanvasWrap { display:flex; justify-content:center; margin:10px 0; }
+        #spinCanvas { max-width:280px; width:85%; height:auto; }
+        .spin-info { text-align:center; margin:8px 0 14px; font-weight:600; color:var(--tg-text-sec); }
+        .spin-info span { color:var(--tg-blue); font-family:'Poppins',sans-serif; font-weight:800; font-size:18px; }
+        /* Notifications */
+        .notif { padding:14px; background:#f7fafd; border-radius:12px; margin-bottom:8px; border:1px solid #e8ecf0; }
+        body.dark-mode .notif { background:#334155; border-color:#475569; }
+        .notif .t { font-weight:700; margin-bottom:4px; font-size:14px; }
+        .notif .b { font-size:13px; color:var(--tg-text-sec); line-height:1.5; }
+        .notif .ts { font-size:10px; color:#9aa5b1; margin-top:8px; font-family:'Poppins',sans-serif; display:flex; align-items:center; gap:4px; }
+        .notif .ts i { font-size:12px; }
+        /* Centered Banner */
+        #centeredBanner {
+            position: fixed;
+            inset: 0;
+            z-index: 250;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(6px);
+            animation: fadeIn 0.25s ease-out;
+        }
+        #centeredBanner.open { display: flex; }
+        .banner-card {
+            background: var(--tg-card);
+            border-radius: var(--radius-lg);
+            padding: 28px 22px 22px;
+            max-width: 340px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+            animation: slideUpBanner 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            position: relative;
+            overflow: hidden;
+        }
+        .banner-card::before {
+            content:'';
+            position:absolute;
+            top:0; left:0; right:0;
+            height:4px;
+            background:var(--grad-gold);
+        }
+        @keyframes slideUpBanner {
+            from { transform:translateY(40px) scale(0.96); opacity:0; }
+            to { transform:translateY(0) scale(1); opacity:1; }
+        }
+        .banner-card .banner-icon {
+            font-size:48px;
+            color:var(--tg-warning);
+            margin-bottom:10px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:rgba(245,158,11,0.12);
+            width:72px; height:72px;
+            border-radius:50%;
+            margin-left:auto;
+            margin-right:auto;
+        }
+        .banner-card .banner-icon i { font-size:36px; }
+        .banner-card .banner-title {
+            font-weight:700;
+            font-size:17px;
+            color:var(--tg-text);
+            margin-bottom:4px;
+        }
+        .banner-card .banner-body {
+            font-size:14px;
+            color:var(--tg-text-sec);
+            margin-bottom:16px;
+            line-height:1.5;
+        }
+        .banner-card .banner-actions {
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+        .banner-card .btn-dismiss {
+            background:var(--grad-earn);
+            color:#fff;
+            padding:12px;
+            border-radius:var(--radius-md);
+            font-weight:700;
+            font-size:14px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+            transition:transform 0.15s, box-shadow 0.15s;
+            box-shadow:0 4px 14px rgba(0,200,81,0.3);
+        }
+        .banner-card .btn-dismiss:active { transform:scale(0.95); }
+        .banner-card .btn-dismiss i { font-size:18px; }
+        .banner-card .btn-later {
+            background:transparent;
+            color:var(--tg-text-sec);
+            font-size:13px;
+            font-weight:600;
+            padding:8px;
+            border-radius:8px;
+            transition:background 0.15s;
+        }
+        .banner-card .btn-later:hover { background:rgba(0,0,0,0.04); }
+        body.dark-mode .banner-card .btn-later:hover { background:rgba(255,255,255,0.06); }
+        .banner-card .banner-balance-hint {
+            font-size:11px;
+            color:var(--tg-text-sec);
+            margin-top:10px;
+            opacity:0.7;
+        }
+        /* Toast */
+        .toast-wrap { position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:9999; display:flex; flex-direction:column; gap:6px; width:92%; max-width:420px; pointer-events:none; }
+        .toast { background:#1f2937; color:#fff; padding:12px 16px; border-radius:13px; font-weight:600; font-size:13px; display:flex; align-items:center; gap:9px; box-shadow:0 8px 24px rgba(0,0,0,.25); animation:springDown .4s cubic-bezier(.34,1.56,.64,1); }
+        .toast.success { background:#059669; }
+        .toast.warn { background:#d97706; }
+        .toast.danger { background:var(--tg-danger); }
+        .toast i { font-size:18px; flex-shrink:0; }
+        @keyframes springDown { from { transform:translateY(-80px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        .confetti { position:fixed; width:8px; height:14px; top:-20px; z-index:9999; pointer-events:none; animation:fall 2.2s linear forwards; border-radius:2px; }
+        @keyframes fall { to { transform:translateY(110vh) rotate(720deg); opacity:0; } }
+        .empty { text-align:center; color:var(--tg-text-sec); padding:32px 10px; font-size:13px; }
+        .empty i { font-size:48px; color:#cdd5de; display:block; margin-bottom:10px; }
+        .empty .et { font-weight:600; margin-bottom:4px; color:var(--tg-text); }
+        #maint { position:fixed; inset:0; background:var(--tg-bg); display:none; flex-direction:column; align-items:center; justify-content:center; z-index:9998; padding:24px; text-align:center; }
+        #maint .maint-icon { width:80px; height:80px; border-radius:22px; background:linear-gradient(135deg,#e8f4fd,#d4eafa); display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+        #maint .maint-icon i { font-size:42px; color:var(--tg-blue); }
+        #maint h2 { font-size:20px; margin-bottom:8px; }
+        #maint p { color:var(--tg-text-sec); font-size:14px; }
+        .divider { height:1px; background:#eef2f7; margin:14px 0; }
+        body.dark-mode .divider { background:#334155; }
+    </style>
+</head>
+<body>
+
+    <!-- AUTH CONTAINER -->
+    <div id="authContainer">
+        <div class="auth-box" id="loginForm">
+            <div class="auth-header">
+                <h2>Daily income এ লগইন করুন</h2>
+                <p>আপনার অ্যাকাউন্ট দিয়ে প্রবেশ করুন</p>
+            </div>
+            <div class="input-grp">
+                <label>জিমেইল বা মোবাইল নম্বর</label>
+                <input type="text" id="loginId" placeholder="জিমেইল বা নম্বর দিন">
+            </div>
+            <div class="input-grp">
+                <label>পাসওয়ার্ড</label>
+                <input type="password" id="loginPass" placeholder="পাসওয়ার্ড দিন">
+            </div>
+            <button class="btn-primary" onclick="handleLogin()">লগইন করুন</button>
+            <div class="auth-links">
+                <a onclick="showAuthForm('register')">নতুন অ্যাকাউন্ট খুলুন</a>
+                <a onclick="showAuthForm('forgot')">পাসওয়ার্ড ভুলে গেছেন?</a>
+            </div>
+        </div>
+
+        <div class="auth-box" id="registerForm" style="display:none;">
+            <div class="auth-header">
+                <h2>নতুন অ্যাকাউন্ট খুলুন</h2>
+                <p>নিচের তথ্যগুলো সঠিক ভাবে পূরণ করুন</p>
+            </div>
+            <div class="input-grp">
+                <label>আপনার নাম</label>
+                <input type="text" id="regName" placeholder="পূর্ণ নাম">
+            </div>
+            <div class="input-grp">
+                <label>মোবাইল নম্বর</label>
+                <input type="text" id="regPhone" placeholder="01XXXXXXXXX">
+            </div>
+            <div class="input-grp">
+                <label>জিমেইল এড্রেস</label>
+                <input type="email" id="regEmail" placeholder="example@gmail.com">
+            </div>
+            <div class="input-grp">
+                <label>পাসওয়ার্ড (প্রথম)</label>
+                <input type="password" id="regPass1" placeholder="পাসওয়ার্ড">
+            </div>
+            <div class="input-grp">
+                <label>পাসওয়ার্ড নিশ্চিত করুন (দ্বিতীয়)</label>
+                <input type="password" id="regPass2" placeholder="পুনরায় পাসওয়ার্ড দিন">
+            </div>
+            <div class="input-grp">
+                <label>রেফার কোড (ঐচ্ছিক)</label>
+                <input type="text" id="regRef" placeholder="৬ ডিজিট রেফার আইডি দিন">
+            </div>
+            <button class="btn-primary" onclick="handleRegister()">রেজিস্ট্রেশন করুন</button>
+            <div class="auth-links" style="justify-content:center; margin-top:12px;">
+                <span>অ্যাকাউন্ট আছে? &nbsp;</span><a onclick="showAuthForm('login')">লগইন করুন</a>
+            </div>
+        </div>
+
+        <div class="auth-box" id="forgotForm" style="display:none;">
+            <div class="auth-header">
+                <h2>পাসওয়ার্ড পুনরুদ্ধার / চ্যাট</h2>
+                <p>আপনার নাম ও ফোন নম্বর দিয়ে চ্যাট শুরু করুন</p>
+            </div>
+            <div id="forgotStepDetails">
+                <div class="input-grp">
+                    <label>আপনার নাম</label>
+                    <input type="text" id="forgotName" placeholder="আপনার পূর্ণ নাম দিন">
+                </div>
+                <div class="input-grp">
+                    <label>ফোন নম্বর</label>
+                    <input type="text" id="forgotPhone" placeholder="আপনার ফোন নম্বর দিন">
+                </div>
+                <button class="btn-primary" onclick="startForgotChat()">পরবর্তী (Next)</button>
+            </div>
+            <div id="forgotStepChat" style="display:none;">
+                <div class="chat-box" id="chatMessages">
+                    <div class="chat-msg admin">
+                        হ্যালো! আপনার অ্যাকাউন্ট সংক্রান্ত কি সমস্যা হচ্ছে নিচে লিখুন। এডমিন খুব শীঘ্রই উত্তর দিবে।
+                        <span class="time">Auto</span>
+                    </div>
+                </div>
+                <div class="chat-input-wrap">
+                    <input type="text" id="chatInputMsg" placeholder="আপনার মেসেজ লিখুন...">
+                    <button onclick="handleSupportSend()"><i class="ph-duotone ph-paper-plane-right"></i></button>
+                </div>
+            </div>
+            <div class="auth-links" style="justify-content:center; margin-top:14px;">
+                <a onclick="showAuthForm('login')">লগইন পাতায় ফিরে যান</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="loader">
+        <div class="logo-wrap">
+            <div class="logo">Daily <span>income </span></div>
+            <div class="tag">উপার্জন করুন, প্রতিদিন</div>
+        </div>
+        <div class="loader-icon"></div>
+    </div>
+
+    <div id="maint">
+        <div class="maint-icon"><i class="ph-duotone ph-wrench"></i></div>
+        <h2>রক্ষণাবেক্ষণ চলছে</h2>
+        <p>কিছুক্ষণ পরে আবার চেষ্টা করুন। ধন্যবাদ আপনার ধৈর্যের জন্য।</p>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-profile">
+            <div class="sidebar-avatar" onclick="triggerProfileUpload()">
+                <div id="sbAvatar">U</div>
+                <div class="upload-icon"><i class="ph-duotone ph-camera"></i></div>
+            </div>
+            <input type="file" id="profileImageInput" accept="image/*" style="display:none" onchange="uploadProfileImage(event)">
+            <div style="display:flex; gap:6px; margin-top:8px;">
+                <input type="text" id="sbNameInput" class="input-grp" style="font-size:13px; padding:6px; margin-bottom:0;" placeholder="নাম পরিবর্তন">
+                <button class="btn-primary" style="width:auto; padding:6px 10px; font-size:12px;" onclick="updateProfileName()">সেভ</button>
+            </div>
+        </div>
+        <div class="theme-toggle-wrap" style="margin-top:15px;">
+            <span style="font-size:13px; font-weight:600;"><i class="ph-duotone ph-moon-stars"></i> ডার্ক মোড</span>
+            <label class="switch">
+                <input type="checkbox" id="themeToggle" onchange="toggleTheme(this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">সিকিউরিটি পাসওয়ার্ড</div>
+            <div class="input-grp">
+                <label>জিমেইল</label>
+                <input type="text" id="secEmail" readonly>
+            </div>
+            <div class="input-grp">
+                <label>ফোন নম্বর</label>
+                <input type="text" id="secPhone" readonly>
+            </div>
+            <div class="input-grp">
+                <label>পুরাতন পাসওয়ার্ড</label>
+                <input type="password" id="oldPass" placeholder="পুরাতন পাসওয়ার্ড">
+            </div>
+            <div class="input-grp">
+                <label>নতুন পাসওয়ার্ড</label>
+                <input type="password" id="newPass" placeholder="নতুন পাসওয়ার্ড">
+            </div>
+            <button class="btn-primary" style="padding:10px; font-size:13px;" onclick="changePassword()">পাসওয়ার্ড পরিবর্তন করুন</button>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">বার্তা / লিংকসমূহ</div>
+            <div id="sidebarCustomItems"></div>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="app" style="display:none;">
+        <!-- Header -->
+        <div class="header">
+            <div class="avatar" id="hAvatar" onclick="openSidebar()">U</div>
+            <div class="info">
+                <div class="name" id="hName">User</div>
+                <div class="uid">ID: <span id="hUid">------</span></div>
+            </div>
+            <button class="hbtn" onclick="openNotifications()">
+                <i class="ph-duotone ph-bell"></i>
+                <span class="dot" id="notifDot" style="display:none"></span>
+            </button>
+            <button class="hbtn" onclick="openCheckin()" style="margin-left:6px">
+                <i class="ph-duotone ph-calendar-check"></i>
+            </button>
+            <button class="hbtn" onclick="handleLogout()" style="margin-left:6px" title="লগআউট">
+                <i class="ph-duotone ph-sign-out"></i>
+            </button>
+        </div>
+
+        <!-- HOME -->
+        <div class="tab-panel active" id="tab-home">
+            <div id="bannerNotif"></div>
+            <div class="balance-card stagger">
+                <div class="bg-circle c1"></div>
+                <div class="bg-circle c2"></div>
+                <div class="bg-circle c3"></div>
+                <div class="vip-badge" id="vipBadge">
+                    <i class="ph-duotone ph-medal"></i>
+                    <span id="vipLabel">Bronze</span>
+                </div>
+                <div class="bal-label">আপনার মোট ব্যালেন্স</div>
+                <div class="amount num">৳<span id="balance">0.0000</span></div>
+                <div class="bal-sub">
+                    <i class="ph-duotone ph-television"></i>
+                    <span>আজকের বিজ্ঞাপন: <span class="num" id="todayAds">0</span>/<span class="num" id="dailyLimit">10</span></span>
+                </div>
+            </div>
+            <div class="qa-grid stagger">
+                <button class="qa" onclick="openCheckin()">
+                    <div class="qa-icon"><i class="ph-duotone ph-calendar-check"></i></div>
+                    <span>চেক-ইন</span>
+                </button>
+                <button class="qa" onclick="openSpin()">
+                    <div class="qa-icon"><i class="ph-duotone ph-circles-three-plus"></i></div>
+                    <span>স্পিন</span>
+                </button>
+                <button class="qa" onclick="switchTab('tasks')">
+                    <div class="qa-icon"><i class="ph-duotone ph-list-checks"></i></div>
+                    <span>টাস্ক</span>
+                </button>
+                <button class="qa" onclick="switchTab('team')">
+                    <div class="qa-icon"><i class="ph-duotone ph-users-three"></i></div>
+                    <span>রেফার</span>
+                </button>
+            </div>
+            <div class="stats-row stagger">
+                <div class="stat-box">
+                    <div class="ic"><i class="ph-duotone ph-coins"></i></div>
+                    <div>
+                        <div class="lbl">মোট আয়</div>
+                        <div class="val num">৳<span id="totalEarned">0.00</span></div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="ic green"><i class="ph-duotone ph-users"></i></div>
+                    <div>
+                        <div class="lbl">রেফারেল</div>
+                        <div class="val"><span class="num" id="refCount">0</span> জন</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sec-title"><i class="ph-duotone ph-calendar-dots"></i> দৈনিক চেক-ইন স্ট্রিক</div>
+            <div class="card">
+                <div class="streak" id="streakRow"></div>
+            </div>
+            <div class="sec-title"><i class="ph-duotone ph-television"></i> বিজ্ঞাপন দেখে উপার্জন</div>
+            <div class="ad-card">
+                <div class="ad-head">
+                    <div class="ad-ic"><i class="ph-duotone ph-play-circle"></i></div>
+                    <div class="ad-info">
+                        <div class="title">বিজ্ঞাপন দেখুন</div>
+                        <div class="desc">প্রতি বিজ্ঞাপনে +৳<span class="num" id="perAdEarn">0.00</span> উপার্জন করুন</div>
+                    </div>
+                </div>
+                <button class="btn-big" id="watchAdBtn" onclick="watchAd()">
+                    <i class="ph-duotone ph-play-circle"></i> বিজ্ঞাপন দেখুন
+                </button>
+                <div class="progress-wrap">
+                    <div class="progress-lbl">
+                        <span>আজকের অগ্রগতি</span>
+                        <span class="num" id="adsProgressTxt">0/10</span>
+                    </div>
+                    <div class="progress-bar"><div class="fill" id="adsProgressFill" style="width:0%"></div></div>
+                </div>
+            </div>
+            <div class="sec-title"><i class="ph-duotone ph-storefront"></i> দ্রুত পদক্ষেপ</div>
+            <div class="card" style="display:flex;gap:8px">
+                <button class="btn-primary" onclick="openMarket()">
+                    <i class="ph-duotone ph-shopping-bag"></i> মার্কেট
+                </button>
+            </div>
+            <div class="sec-title"><i class="ph-duotone ph-storefront"></i> এড বিজ্ঞাপন মার্কেট</div>
+            <div id="adMarketList" class="stagger"></div>
+        </div>
+
+        <!-- TEAM -->
+        <div class="tab-panel" id="tab-team">
+            <div class="card">
+                <div style="font-weight:700;display:flex;align-items:center;gap:8px;font-size:15px">
+                    <i class="ph-duotone ph-users-three" style="font-size:22px;color:var(--tg-blue)"></i>
+                    আপনার রেফারেল লিঙ্ক
+                </div>
+                <div class="ref-link">
+                    <input id="refLink" readonly>
+                    <button onclick="copyRef()"><i class="ph-duotone ph-copy"></i> কপি</button>
+                </div>
+                <button class="tg-share" onclick="shareTG()">
+                    <i class="ph-duotone ph-telegram-logo"></i> Telegram এ শেয়ার করুন
+                </button>
+            </div>
+            <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+                <div class="stat-box" style="flex-direction:column;text-align:center;gap:6px">
+                    <div class="ic"><i class="ph-duotone ph-users"></i></div>
+                    <div class="lbl">রেফার</div>
+                    <div class="val num" id="tRefCount">0</div>
+                </div>
+                <div class="stat-box" style="flex-direction:column;text-align:center;gap:6px">
+                    <div class="ic"><i class="ph-duotone ph-coins"></i></div>
+                    <div class="lbl">রেফার আয়</div>
+                    <div class="val num">৳<span id="tRefEarn">0</span></div>
+                </div>
+                <div class="stat-box" style="flex-direction:column;text-align:center;gap:6px">
+                    <div class="ic green"><i class="ph-duotone ph-gift"></i></div>
+                    <div class="lbl">বোনাস/জন</div>
+                    <div class="val num">৳<span id="tRefBonus">0</span></div>
+                </div>
+            </div>
+            <div class="tier-card">
+                <div style="font-weight:700;display:flex;align-items:center;gap:7px;font-size:14px">
+                    <i class="ph-duotone ph-medal" style="color:var(--tg-gold);font-size:20px"></i>
+                    আপনার টিয়ার: <span id="tierName">Bronze</span>
+                </div>
+                <div class="progress-bar" style="margin-top:10px"><div class="fill" id="tierProgress" style="width:0%"></div></div>
+                <div style="font-size:11px;color:var(--tg-text-sec);margin-top:5px;font-weight:500" id="tierHint">পরবর্তী টিয়ার পর্যন্ত: --</div>
+                <div class="tier-grid">
+                    <div class="tier-item" data-t="Bronze">
+                        <div class="t-icon"><i class="ph-duotone ph-medal" style="color:var(--tg-bronze)"></i></div>
+                        <div class="name">Bronze</div>
+                        <div style="font-size:11px;color:inherit;opacity:.75">0–9 জন</div>
+                    </div>
+                    <div class="tier-item" data-t="Silver">
+                        <div class="t-icon"><i class="ph-duotone ph-medal" style="color:var(--tg-silver)"></i></div>
+                        <div class="name">Silver</div>
+                        <div style="font-size:11px;color:inherit;opacity:.75">10–24 | +20%</div>
+                    </div>
+                    <div class="tier-item" data-t="Gold">
+                        <div class="t-icon"><i class="ph-duotone ph-medal" style="color:var(--tg-gold)"></i></div>
+                        <div class="name">Gold</div>
+                        <div style="font-size:11px;color:inherit;opacity:.75">25–49 | +50%</div>
+                    </div>
+                    <div class="tier-item" data-t="Platinum">
+                        <div class="t-icon"><i class="ph-duotone ph-diamond" style="color:var(--tg-platinum)"></i></div>
+                        <div class="name">Platinum</div>
+                        <div style="font-size:11px;color:inherit;opacity:.75">50+ | +100%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sec-title"><i class="ph-duotone ph-user-list"></i> আপনার রেফারেলরা</div>
+            <div id="refList"></div>
+        </div>
+
+        <!-- TASKS -->
+        <div class="tab-panel" id="tab-tasks">
+            <div class="filter-pills" id="taskFilters">
+                <div class="pill active" data-f="all">সব</div>
+                <div class="pill" data-f="youtube">YouTube</div>
+                <div class="pill" data-f="facebook">Facebook</div>
+                <div class="pill" data-f="telegram">Telegram</div>
+                <div class="pill" data-f="other">অন্যান্য</div>
+            </div>
+            <div id="taskList"></div>
+        </div>
+
+        <!-- LEADERBOARD -->
+        <div class="tab-panel" id="tab-board">
+            <div class="sec-title" style="justify-content:center;font-size:15px;margin-top:6px">
+                <i class="ph-duotone ph-trophy" style="color:var(--tg-gold);font-size:22px"></i>
+                শীর্ষ আয়কারী
+            </div>
+            <div class="podium" id="podium"></div>
+            <div id="lbList"></div>
+        </div>
+
+        <!-- WALLET -->
+        <div class="tab-panel" id="tab-wallet">
+            <div class="balance-card">
+                <div class="bg-circle c1"></div>
+                <div class="bg-circle c2"></div>
+                <div class="bal-label">উইথড্রঅ্যাবল ব্যালেন্স</div>
+                <div class="amount num">৳<span id="wBalance">0.0000</span></div>
+                <div class="bal-sub">
+                    <i class="ph-duotone ph-arrow-up-right"></i>
+                    মোট উইথড্র: ৳<span class="num" id="wTotal">0.00</span>
+                </div>
+            </div>
+            <div class="card" style="margin-top:14px">
+                <div style="font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;font-size:15px">
+                    <i class="ph-duotone ph-money" style="color:var(--tg-accent);font-size:22px"></i>
+                    উইথড্র করুন
+                </div>
+                <div class="input-grp">
+                    <label>পেমেন্ট পদ্ধতি</label>
+                    <div class="method-grid" id="methodGrid"></div>
+                </div>
+                <div class="input-grp">
+                    <label id="withdrawAccountLabel">অ্যাকাউন্ট নম্বর</label>
+                    <input id="withdrawAccount" placeholder="01XXXXXXXXX">
+                </div>
+                <div class="input-grp">
+                    <label>পরিমাণ (৳)</label>
+                    <input type="number" id="withdrawAmount" step="0.01" placeholder="0.00">
+                    <div class="hint" id="withdrawMinLabel">
+                        <i class="ph-duotone ph-info"></i> সর্বনিম্ন ৳5
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="submitWithdraw()">
+                    <i class="ph-duotone ph-paper-plane-tilt"></i> উইথড্র অনুরোধ পাঠান
+                </button>
+            </div>
+            <div class="sec-title"><i class="ph-duotone ph-clock-counter-clockwise"></i> লেনদেন ইতিহাস</div>
+            <div class="filter-pills" id="txFilters">
+                <div class="pill active" data-f="all">সব</div>
+                <div class="pill" data-f="in">আয়</div>
+                <div class="pill" data-f="out">উইথড্র</div>
+            </div>
+            <div id="txList"></div>
+        </div>
+
+        <!-- Bottom Nav -->
+        <div class="botnav">
+            <button class="nav-item active" data-tab="home" onclick="switchTab('home')">
+                <div class="nav-icon"><i class="ph-duotone ph-house"></i></div>হোম
+            </button>
+            <button class="nav-item" data-tab="team" onclick="switchTab('team')">
+                <div class="nav-icon"><i class="ph-duotone ph-users-three"></i></div>টিম
+            </button>
+            <button class="nav-item" data-tab="tasks" onclick="switchTab('tasks')">
+                <div class="nav-icon"><i class="ph-duotone ph-list-checks"></i></div>টাস্ক
+            </button>
+            <button class="nav-item" data-tab="board" onclick="switchTab('board')">
+                <div class="nav-icon"><i class="ph-duotone ph-trophy"></i></div>বোর্ড
+            </button>
+            <button class="nav-item" data-tab="wallet" onclick="switchTab('wallet')">
+                <div class="nav-icon"><i class="ph-duotone ph-wallet"></i></div>ওয়ালেট
+            </button>
+        </div>
+    </div>
+
+    <!-- Spin Modal -->
+    <div class="modal" id="spinModal">
+        <div class="modal-body">
+            <div class="modal-head">
+                <div class="t"><i class="ph-duotone ph-circles-three-plus"></i> লাকি স্পিন</div>
+                <button class="x" onclick="closeModal('spinModal')"><i class="ph-duotone ph-x"></i></button>
+            </div>
+            <div class="spin-info">কার্ড: <span id="spinCardCount">0</span></div>
+            <div id="spinCanvasWrap"><canvas id="spinCanvas" width="300" height="300"></canvas></div>
+            <button class="btn-primary" id="spinBtn" onclick="doSpin()">
+                <i class="ph-duotone ph-arrow-clockwise"></i> স্পিন করুন
+            </button>
+            <div style="text-align:center;margin-top:12px">
+                <button onclick="closeModal('spinModal');openMarket()" style="color:var(--tg-blue);font-weight:700;display:inline-flex;align-items:center;gap:4px">
+                    <i class="ph-duotone ph-shopping-bag" style="font-size:16px"></i> কার্ড কিনুন
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Market Modal -->
+    <div class="modal" id="marketModal">
+        <div class="modal-body">
+            <div class="modal-head">
+                <div class="t"><i class="ph-duotone ph-shopping-bag"></i> মার্কেট</div>
+                <button class="x" onclick="closeModal('marketModal')"><i class="ph-duotone ph-x"></i></button>
+            </div>
+            <div class="market-grid" id="marketGrid"></div>
+        </div>
+    </div>
+
+    <!-- Ad Market Screenshot Modal -->
+    <div class="modal" id="adSSModal">
+        <div class="modal-body">
+            <div class="modal-head">
+                <div class="t"><i class="ph-duotone ph-camera"></i> স্ক্রিনশট জমা দিন</div>
+                <button class="x" onclick="closeModal('adSSModal')"><i class="ph-duotone ph-x"></i></button>
+            </div>
+            <div class="card" style="margin-bottom:12px;padding:12px;text-align:center;font-size:13px;color:var(--tg-text-sec);">
+                বিজ্ঞাপনটি দেখার পর সঠিক ভাবে ২টি স্ক্রিনশট গ্যালারি থেকে আপলোড করুন।
+            </div>
+            <input type="hidden" id="currentAdId">
+            <div class="input-grp">
+                <label>প্রথম স্ক্রিনশট দিন</label>
+                <input type="file" id="ssInput1" accept="image/*">
+            </div>
+            <div class="input-grp">
+                <label>দ্বিতীয় স্ক্রিনশট দিন</label>
+                <input type="file" id="ssInput2" accept="image/*">
+            </div>
+            <button class="btn-primary" id="ssSubmitBtn" onclick="submitAdSS()">
+                <i class="ph-duotone ph-cloud-arrow-up"></i> সাবমিট করুন
+            </button>
+        </div>
+    </div>
+
+    <!-- Check-in Modal -->
+    <div class="modal" id="checkinModal">
+        <div class="modal-body">
+            <div class="modal-head">
+                <div class="t"><i class="ph-duotone ph-calendar-check"></i> দৈনিক চেক-ইন</div>
+                <button class="x" onclick="closeModal('checkinModal')"><i class="ph-duotone ph-x"></i></button>
+            </div>
+            <div style="text-align:center;color:var(--tg-text-sec);font-size:13px;margin-bottom:14px">প্রতিদিন চেক-ইন করে রিওয়ার্ড পান</div>
+            <div class="streak" id="checkinStreak" style="margin-bottom:16px"></div>
+            <button class="btn-primary" id="checkinBtn" onclick="doCheckin()">
+                <i class="ph-duotone ph-check-circle"></i> আজকের চেক-ইন সম্পন্ন করুন
+            </button>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div class="modal" id="notifModal">
+        <div class="modal-body">
+            <div class="modal-head">
+                <div class="t"><i class="ph-duotone ph-bell"></i> নোটিফিকেশন</div>
+                <button class="x" onclick="closeModal('notifModal')"><i class="ph-duotone ph-x"></i></button>
+            </div>
+            <div id="notifList"></div>
+        </div>
+    </div>
+
+    <!-- ===== CENTERED BANNER ===== -->
+    <div id="centeredBanner">
+        <div class="banner-card">
+            <div class="banner-icon"><i class="ph-duotone ph-megaphone"></i></div>
+            <div class="banner-title" id="bannerTitle">বিজ্ঞপ্তি</div>
+            <div class="banner-body" id="bannerBody">বার্তা</div>
+            <div class="banner-actions">
+                <button class="btn-dismiss" id="bannerDismissBtn" onclick="dismissBanner()">
+                    <i class="ph-duotone ph-coin"></i> ৳<span id="bannerDismissCost">0.50</span> দিয়ে সরান
+                </button>
+                <button class="btn-later" onclick="closeBanner()">পরে দেখুন</button>
+            </div>
+            <div class="banner-balance-hint" id="bannerBalanceHint">আপনার ব্যালেন্স: ৳0.00</div>
+        </div>
+    </div>
+
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <script>
+        /* ============ FIREBASE CONFIG ============ */
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjfyqf_ttdjuW2HseQr3nJX83atItbB3o",
+            authDomain: "daily-income-b7e3b.firebaseapp.com",
+            databaseURL: "https://daily-income-b7e3b-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "daily-income-b7e3b",
+            storageBucket: "daily-income-b7e3b.firebasestorage.app",
+            messagingSenderId: "588235932933",
+            appId: "1:588235932933:web:e133f13d5e4b0a083e236c",
+            measurementId: "G-K31C4H1L7X"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const fs = firebase.firestore();
+        const auth = firebase.auth();
+
+        /* ============ STATE ============ */
+        let TGUser = null,
+            currentUser = null,
+            appSettings = {},
+            withdrawMethods = [],
+            selectedMethod = null;
+        let tasks = [],
+            adMarketItems = [],
+            notifications = [],
+            unreadCount = 0,
+            currentTaskFilter = 'all',
+            currentTxFilter = 'all';
+        let transactionsCache = [];
+        let _dailyCardDone = false;
+        let userChatSessionId = localStorage.getItem('chatSessionId') || ('guest_' + Date.now());
+        localStorage.setItem('chatSessionId', userChatSessionId);
+
+        // Banner interval control
+        let bannerTimer = null;
+        let bannerIntervalSeconds = 30;
+        let bannerEnabled = true;
+        let _bannerShownThisSession = false;
+
+        // In-App Interstitial Ads
+        let interstitialInterval = null;
+        let interstitialCount = 0;
+        let interstitialMax = 2;
+        let interstitialCappingHours = 0.1;
+        let interstitialIntervalSeconds = 30;
+        let interstitialDelay = 5;
+        let interstitialEveryPage = false;
+        let interstitialLastShow = 0;
+        let interstitialAdShown = 0;
+
+        /* ============ UTILS ============ */
+        const $ = id => document.getElementById(id);
+
+        function getBDDate() {
+            const d = new Date(Date.now() + 6 * 3600 * 1000);
+            return d.toISOString().split('T')[0];
+        }
+
+        function generateAppId() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        function showToast(msg, type = 'info') {
+            const t = document.createElement('div');
+            t.className = 'toast ' + (type || 'info');
+            const icMap = { success: 'check-circle', warn: 'warning', danger: 'x-circle', info: 'info' };
+            const ic = icMap[type] || 'info';
+            t.innerHTML = `<i class="ph-duotone ph-${ic}"></i><span>${msg}</span>`;
+            $('toastWrap').appendChild(t);
+            setTimeout(() => { t.style.opacity = '0';
+                t.style.transform = 'translateY(-20px)';
+                t.style.transition = 'all .3s';
+                setTimeout(() => t.remove(), 300); }, 3000);
+        }
+
+        function fireConfetti() {
+            const colors = ['#2AABEE', '#FFD700', '#00C851', '#FF3B30', '#8B5CF6', '#F59E0B'];
+            for (let i = 0; i < 45; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + '%';
+                c.style.background = colors[i % colors.length];
+                c.style.animationDelay = (Math.random() * 0.6) + 's';
+                c.style.width = (6 + Math.random() * 6) + 'px';
+                c.style.height = (10 + Math.random() * 8) + 'px';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 2700);
+            }
+        }
+
+        const _countUpTargets = new Map();
+
+        function countUp(el, to, dur = 900) {
+            _countUpTargets.set(el, to);
+            const from = parseFloat(el.dataset.balance || el.textContent) || 0;
+            el.dataset.balance = to;
+            const start = performance.now();
+
+            function step(t) {
+                if (_countUpTargets.get(el) !== to) return;
+                const p = Math.min(1, (t - start) / dur);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = (from + (to - from) * eased).toFixed(4);
+                if (p < 1) requestAnimationFrame(step);
+                else { el.textContent = to.toFixed(4);
+                    el.dataset.balance = to; }
+            }
+            requestAnimationFrame(step);
+        }
+
+        function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+                "'": '&#39;' } [c])); }
+
+        /* Auto-fill Referral Code from URL */
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const refParam = urlParams.get('ref');
+            if (refParam && $('regRef')) {
+                $('regRef').value = refParam;
+            }
+            init();
+        });
+
+        /* ============ INTERSTITIAL ADS (Monetag) ============ */
+        function initInterstitialAds() {
+            // Load settings from Firebase
+            db.ref('settings/interstitial').on('value', snap => {
+                const settings = snap.val() || {};
+                interstitialMax = parseInt(settings.frequency) || 2;
+                interstitialCappingHours = parseFloat(settings.capping) || 0.1;
+                interstitialIntervalSeconds = parseInt(settings.interval) || 30;
+                interstitialDelay = parseInt(settings.timeout) || 5;
+                interstitialEveryPage = settings.everyPage === true || settings.everyPage === 'true' || false;
+
+                // Reset and restart interstitial timer
+                resetInterstitialTimer();
+            });
+
+            // Load zone ID
+            db.ref('settings/monetagZoneId').on('value', snap => {
+                const zoneId = snap.val() || '11525152';
+                // Store zone id for later use
+                window._interstitialZoneId = zoneId;
+            });
+
+            // Initial setup
+            resetInterstitialTimer();
+        }
+
+        function resetInterstitialTimer() {
+            if (interstitialInterval) {
+                clearInterval(interstitialInterval);
+                interstitialInterval = null;
+            }
+            interstitialCount = 0;
+            interstitialAdShown = 0;
+            interstitialLastShow = 0;
+
+            // Start with a delay
+            setTimeout(() => {
+                startInterstitialLoop();
+            }, interstitialDelay * 1000);
+        }
+
+        function startInterstitialLoop() {
+            if (interstitialInterval) {
+                clearInterval(interstitialInterval);
+                interstitialInterval = null;
+            }
+
+            // Check if we should show ads
+            interstitialInterval = setInterval(() => {
+                // Check capping (time-based)
+                const now = Date.now();
+                const hoursSinceLast = (now - interstitialLastShow) / (1000 * 60 * 60);
+
+                // If capping is 0, always show. Otherwise check if enough time has passed
+                if (interstitialCappingHours > 0 && hoursSinceLast < interstitialCappingHours) {
+                    // Still within capping window, don't show
+                    return;
+                }
+
+                // Check if we've reached the max ads for this session
+                if (interstitialAdShown >= interstitialMax) {
+                    // Reset after capping period
+                    if (hoursSinceLast >= interstitialCappingHours) {
+                        interstitialAdShown = 0;
+                    } else {
+                        return;
+                    }
+                }
+
+                // Show interstitial ad
+                showInterstitialAd();
+                interstitialAdShown++;
+                interstitialLastShow = Date.now();
+            }, interstitialIntervalSeconds * 1000);
+        }
+
+        function showInterstitialAd() {
+            const zoneId = window._interstitialZoneId || '11525152';
+
+            // Load Monetag SDK if not loaded
+            if (typeof window['show_' + zoneId] !== 'function') {
+                // Load SDK
+                const s = document.createElement('script');
+                s.src = '//libtl.com/sdk.js';
+                s.setAttribute('data-zone', String(zoneId));
+                s.setAttribute('data-sdk', 'show_' + zoneId);
+                s.setAttribute('data-cfasync', 'false');
+                s.async = true;
+                s.onload = () => {
+                    tryShowInterstitial(zoneId);
+                };
+                s.onerror = () => {
+                    console.warn('Interstitial SDK load failed');
+                };
+                document.head.appendChild(s);
+            } else {
+                tryShowInterstitial(zoneId);
+            }
+        }
+
+        function tryShowInterstitial(zoneId) {
+            const showFn = window['show_' + zoneId];
+            if (typeof showFn === 'function') {
+                try {
+                    const result = showFn({
+                        type: 'inApp',
+                        inAppSettings: {
+                            frequency: interstitialMax,
+                            capping: interstitialCappingHours,
+                            interval: interstitialIntervalSeconds,
+                            timeout: interstitialDelay,
+                            everyPage: interstitialEveryPage
+                        }
+                    });
+                    if (result && typeof result.then === 'function') {
+                        result.catch(err => console.warn('Interstitial ad error:', err));
+                    }
+                } catch (e) {
+                    console.warn('Interstitial ad show error:', e);
+                }
+            }
+        }
+
+        /* ============ SIDEBAR & THEME LOGIC ============ */
+        function openSidebar() {
+            $('sidebar').classList.add('open');
+            $('sidebarOverlay').classList.add('open');
+        }
+
+        function closeSidebar() {
+            $('sidebar').classList.remove('open');
+            $('sidebarOverlay').classList.remove('open');
+        }
+
+        function toggleTheme(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            window.addEventListener('DOMContentLoaded', () => { if ($('themeToggle')) $('themeToggle').checked = true; });
+        }
+
+        function triggerProfileUpload() {
+            $('profileImageInput').click();
+        }
+
+        function uploadProfileImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Image = e.target.result;
+                if (currentUser) {
+                    db.ref('users/' + currentUser.uid).update({ photoUrl: base64Image });
+                    showToast('প্রোফাইল ছবি পরিবর্তন হয়েছে', 'success');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function updateProfileName() {
+            const newName = $('sbNameInput').value.trim();
+            if (!newName) { showToast('সঠিক নাম দিন', 'warn'); return; }
+            await db.ref('users/' + currentUser.uid).update({ name: newName });
+            showToast('নাম পরিবর্তন করা হয়েছে', 'success');
+        }
+
+        async function changePassword() {
+            const oldPass = $('oldPass').value.trim();
+            const newPass = $('newPass').value.trim();
+            if (!oldPass || !newPass) { showToast('সব তথ্য পূরণ করুন', 'warn'); return; }
+            if (newPass.length < 6) { showToast('নতুন পাসওয়ার্ড ৬ অক্ষরের বেশি হতে হবে', 'warn'); return; }
+
+            if (currentUser.password && currentUser.password !== oldPass) {
+                showToast('পুরাতন পাসওয়ার্ড সঠিক নয়', 'danger');
+                return;
+            }
+
+            const user = auth.currentUser;
+            const credential = firebase.auth.EmailAuthProvider.credential(user.email, oldPass);
+
+            try {
+                await user.reauthenticateWithCredential(credential);
+                await user.updatePassword(newPass);
+                await db.ref('users/' + currentUser.uid).update({ password: newPass });
+                showToast('পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে!', 'success');
+                $('oldPass').value = '';
+                $('newPass').value = '';
+            } catch (e) {
+                showToast('পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে!', 'danger');
+            }
+        }
+
+        function listenToSidebarItems() {
+            db.ref('sidebarItems').on('value', snap => {
+                const data = snap.val();
+                const container = $('sidebarCustomItems');
+                container.innerHTML = '';
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        const item = data[key];
+                        const div = document.createElement('div');
+                        div.className = 'card';
+                        div.style.padding = '10px';
+                        div.style.marginTop = '6px';
+                        div.style.fontSize = '13px';
+                        div.innerHTML = `
+              <div style="font-weight:700;">${escapeHtml(item.name||'বার্তা')}</div>
+              <div style="color:var(--tg-text-sec); font-size:12px;">${escapeHtml(item.text||'')}</div>
+              ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" style="color:var(--tg-blue); font-weight:600; text-decoration:none; display:inline-block; margin-top:4px;">দেখা করার জন্য চাপুন</a>` : ''}
+            `;
+                        container.appendChild(div);
+                    });
+                } else {
+                    container.innerHTML = '<div style="font-size:12px; color:var(--tg-text-sec);">কোন বার্তা নেই</div>';
+                }
+            });
+        }
+
+        /* ============ AUTH UI & LIVE CHAT ============ */
+        function showAuthForm(formType) {
+            $('loginForm').style.display = formType === 'login' ? 'block' : 'none';
+            $('registerForm').style.display = formType === 'register' ? 'block' : 'none';
+            $('forgotForm').style.display = formType === 'forgot' ? 'block' : 'none';
+            if (formType === 'forgot') {
+                $('forgotStepDetails').style.display = 'block';
+                $('forgotStepChat').style.display = 'none';
+            }
+        }
+
+        async function startForgotChat() {
+            const name = $('forgotName').value.trim();
+            const phone = $('forgotPhone').value.trim();
+            if (!name || !phone) {
+                showToast('আপনার নাম এবং ফোন নম্বর দিন', 'warn');
+                return;
+            }
+            userChatSessionId = 'chat_' + phone.replace(/[^0-9]/g, '') + '_' + Date.now();
+            localStorage.setItem('chatSessionId', userChatSessionId);
+
+            try {
+                await db.ref('supportMessages/' + userChatSessionId + '/meta').set({
+                    name: name,
+                    phone: phone,
+                    timestamp: Date.now()
+                });
+            } catch (e) {}
+
+            $('forgotStepDetails').style.display = 'none';
+            $('forgotStepChat').style.display = 'block';
+            listenToAdminChat();
+        }
+
+        function listenToAdminChat() {
+            db.ref('supportMessages/' + userChatSessionId).on('value', snap => {
+                const data = snap.val();
+                const chatBox = $('chatMessages');
+                chatBox.innerHTML = `<div class="chat-msg admin">
+              হ্যালো! আপনার অ্যাকাউন্ট সংক্রান্ত কি সমস্যা হচ্ছে নিচে লিখুন। এডমিন খুব শীঘ্রই উত্তর দিবে।
+              <span class="time">Auto</span>
+            </div>`;
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        if (key === 'meta') return;
+                        const msg = data[key];
+                        const isUser = msg.sender === 'user';
+                        const msgDiv = document.createElement('div');
+                        msgDiv.className = `chat-msg ${isUser ? 'user' : 'admin'}`;
+                        const timeStr = new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit',
+                            minute: '2-digit' });
+                        msgDiv.innerHTML = `${escapeHtml(msg.text)} <span class="time">${timeStr}</span>`;
+                        chatBox.appendChild(msgDiv);
+                    });
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            });
+        }
+
+        async function handleSupportSend() {
+            const msgInput = $('chatInputMsg');
+            const text = msgInput.value.trim();
+            if (!text) return;
+
+            try {
+                await db.ref('supportMessages/' + userChatSessionId).push({
+                    sender: 'user',
+                    text: text,
+                    timestamp: Date.now()
+                });
+                msgInput.value = '';
+            } catch (e) {
+                showToast('মেসেজ পাঠানো সম্ভব হয়নি', 'danger');
+            }
+        }
+
+        async function handleRegister() {
+            const name = $('regName').value.trim();
+            const phone = $('regPhone').value.trim();
+            const email = $('regEmail').value.trim();
+            const pass1 = $('regPass1').value.trim();
+            const pass2 = $('regPass2').value.trim();
+            const refByCode = $('regRef').value.trim();
+
+            if (!name || !phone || !email || !pass1 || !pass2) {
+                showToast('সবগুলো ঘর পূরণ করুন', 'warn');
+                return;
+            }
+            if (pass1 !== pass2) {
+                showToast('দুইটি পাসওয়ার্ড একই হতে হবে', 'danger');
+                return;
+            }
+            if (pass1.length < 6) {
+                showToast('পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে', 'warn');
+                return;
+            }
+
+            $('loader').style.display = 'flex';
+            try {
+                const phoneSnap = await db.ref('users').orderByChild('phone').equalTo(phone).once('value');
+                if (phoneSnap.exists()) {
+                    $('loader').style.display = 'none';
+                    showToast('এই মোবাইল নম্বর দিয়ে অলরেডি অ্যাকাউন্ট আছে', 'danger');
+                    return;
+                }
+
+                const userCredential = await auth.createUserWithEmailAndPassword(email, pass1);
+                const uid = userCredential.user.uid;
+                const appId = generateAppId();
+
+                let validReferrerUid = null;
+                if (refByCode) {
+                    const refSnap = await db.ref('users').orderByChild('appId').equalTo(refByCode).once('value');
+                    if (refSnap.exists()) {
+                        validReferrerUid = Object.keys(refSnap.val())[0];
+                    }
+                }
+
+                const newUser = {
+                    uid,
+                    appId,
+                    name,
+                    phone,
+                    email,
+                    password: pass1,
+                    balance: 0,
+                    totalEarned: 0,
+                    totalWithdrawn: 0,
+                    referralEarned: 0,
+                    referralCount: 0,
+                    referredBy: validReferrerUid || null,
+                    todayAds: 0,
+                    lastAdDate: '',
+                    checkInStreak: 0,
+                    lastCheckIn: '',
+                    lastCardDate: '',
+                    spinCards: 0,
+                    completedTasks: {},
+                    banned: false,
+                    createdAt: Date.now()
+                };
+
+                await db.ref('users/' + uid).set(newUser);
+
+                if (validReferrerUid && validReferrerUid !== uid) {
+                    const refBonus = parseFloat(appSettings.referralBonus || 0.1);
+                    await db.ref('users/' + validReferrerUid).transaction(u => {
+                        if (u) {
+                            u.referralCount = (u.referralCount || 0) + 1;
+                            u.referralEarned = parseFloat(((u.referralEarned || 0) + refBonus).toFixed(4));
+                            u.balance = parseFloat(((u.balance || 0) + refBonus).toFixed(4));
+                            u.totalEarned = parseFloat(((u.totalEarned || 0) + refBonus).toFixed(4));
+                        }
+                        return u;
+                    });
+                }
+
+                showToast('রেজিস্ট্রেশন সফল হয়েছে!', 'success');
+            } catch (e) {
+                $('loader').style.display = 'none';
+                showToast(e.message || 'রেজিস্ট্রেশন ব্যর্থ হয়েছে', 'danger');
+            }
+        }
+
+        async function handleLogin() {
+            const loginId = $('loginId').value.trim();
+            const pass = $('loginPass').value.trim();
+
+            if (!loginId || !pass) {
+                showToast('জিমেইল/ফোন ও পাসওয়ার্ড উভয়ই দিন', 'warn');
+                return;
+            }
+
+            $('loader').style.display = 'flex';
+            try {
+                let emailToLogin = loginId;
+
+                if (!loginId.includes('@')) {
+                    const snap = await db.ref('users').orderByChild('phone').equalTo(loginId).once('value');
+                    if (!snap.exists()) {
+                        $('loader').style.display = 'none';
+                        showToast('এই নম্বরে কোনো অ্যাকাউন্ট নেই', 'danger');
+                        return;
+                    }
+                    let foundData = Object.values(snap.val())[0];
+                    emailToLogin = foundData.email;
+                }
+
+                await auth.signInWithEmailAndPassword(emailToLogin, pass);
+                showToast('সফলভাবে লগইন হয়েছে!', 'success');
+            } catch (e) {
+                $('loader').style.display = 'none';
+                showToast('লগইন ব্যর্থ! সঠিক তথ্য দিন', 'danger');
+            }
+        }
+
+        function handleLogout() {
+            auth.signOut().then(() => {
+                showToast('লগআউট করা হয়েছে', 'info');
+                location.reload();
+            });
+        }
+
+        /* ============ BANNER CONTROL ============ */
+        function listenBannerSettings() {
+            db.ref('settings').on('value', snap => {
+                const settings = snap.val() || {};
+                bannerEnabled = settings.bannerEnabled !== undefined ? settings.bannerEnabled : true;
+                const newInterval = parseInt(settings.bannerInterval) || 30;
+                if (newInterval !== bannerIntervalSeconds) {
+                    bannerIntervalSeconds = newInterval;
+                    resetBannerTimer();
+                }
+                // If banner disabled, close any open banner and clear timer
+                if (!bannerEnabled) {
+                    if ($('centeredBanner').classList.contains('open')) {
+                        closeBanner();
+                    }
+                    clearInterval(bannerTimer);
+                    bannerTimer = null;
+                } else {
+                    // If enabled but timer not running, start it
+                    if (!bannerTimer) {
+                        startBannerTimer();
+                    }
+                }
+            });
+        }
+
+        function startBannerTimer() {
+            if (bannerTimer) clearInterval(bannerTimer);
+            if (!bannerEnabled) return;
+            bannerTimer = setInterval(() => {
+                // Only show if not already shown this session and banner not currently open
+                if (!_bannerShownThisSession && !$('centeredBanner').classList.contains('open')) {
+                    // Check if any notification exists to show
+                    if (notifications.length > 0) {
+                        const notif = notifications[0];
+                        // Check if permanently dismissed
+                        const bannerKey = 'banner_dismissed_' + (notif.id || notif.title || 'default');
+                        if (localStorage.getItem(bannerKey) !== 'true') {
+                            if (!currentUser.dismissedBanners || !currentUser.dismissedBanners[(notif.id || notif
+                                    .title || 'default')]) {
+                                showCenteredBanner(notif);
+                            }
+                        }
+                    } else {
+                        // Show default banner if not dismissed
+                        const defaultKey = 'banner_dismissed_default_banner';
+                        if (localStorage.getItem(defaultKey) !== 'true') {
+                            if (!currentUser.dismissedBanners || !currentUser.dismissedBanners['default_banner']) {
+                                const defaultNotif = {
+                                    id: 'default_banner',
+                                    title: 'স্বাগতম!',
+                                    body: 'Daily Income অ্যাপে আপনাকে স্বাগতম। প্রতিদিন উপার্জন করুন এবং আপনার আয় বাড়ান।',
+                                    text: 'Daily Income অ্যাপে আপনাকে স্বাগতম। প্রতিদিন উপার্জন করুন এবং আপনার আয় বাড়ান।'
+                                };
+                                showCenteredBanner(defaultNotif);
+                            }
+                        }
+                    }
+                }
+            }, bannerIntervalSeconds * 1000);
+        }
+
+        function resetBannerTimer() {
+            clearInterval(bannerTimer);
+            _bannerShownThisSession = false;
+            if (bannerEnabled) {
+                startBannerTimer();
+            }
+        }
+
+        /* ============ CENTERED BANNER FUNCTIONS ============ */
+        function showCenteredBanner(notification) {
+            if (!notification) return;
+            // Check if permanently dismissed
+            const bannerKey = 'banner_dismissed_' + (notification.id || notification.title || 'default');
+            if (localStorage.getItem(bannerKey) === 'true') return;
+            if (currentUser.dismissedBanners && currentUser.dismissedBanners[(notification.id || notification.title ||
+                    'default')]) return;
+
+            const cost = parseFloat(appSettings.bannerDismissCost || 0.50);
+            $('bannerTitle').textContent = notification.title || 'বিজ্ঞপ্তি';
+            $('bannerBody').textContent = notification.body || notification.text || '';
+            $('bannerDismissCost').textContent = cost.toFixed(2);
+            const bal = parseFloat(currentUser?.balance || 0);
+            $('bannerBalanceHint').textContent = 'আপনার ব্যালেন্স: ৳' + bal.toFixed(2);
+
+            $('bannerDismissBtn').dataset.notifId = notification.id || notification.title || 'default';
+            $('bannerDismissBtn').dataset.cost = cost;
+
+            $('centeredBanner').classList.add('open');
+            _bannerShownThisSession = true;
+        }
+
+        function closeBanner() {
+            $('centeredBanner').classList.remove('open');
+            // Reset session flag so it can show again after next interval
+            _bannerShownThisSession = false;
+        }
+
+        async function dismissBanner() {
+            const btn = $('bannerDismissBtn');
+            const cost = parseFloat(btn.dataset.cost || 0.50);
+            const notifId = btn.dataset.notifId || 'default';
+
+            if (!currentUser) {
+                showToast('আপনি লগইন নাই', 'warn');
+                return;
+            }
+
+            const bal = parseFloat(currentUser.balance || 0);
+            if (bal < cost) {
+                showToast('পর্যাপ্ত ব্যালেন্স নেই! প্রয়োজন: ৳' + cost.toFixed(2), 'danger');
+                return;
+            }
+
+            const uid = String(currentUser.uid);
+            let ok = false;
+            await db.ref('users/' + uid).transaction(u => {
+                if (!u) return u;
+                if ((u.balance || 0) < cost) return;
+                u.balance = parseFloat(((u.balance || 0) - cost).toFixed(4));
+                ok = true;
+                return u;
+            });
+
+            if (!ok) {
+                showToast('ব্যালেন্স কাটতে সমস্যা হয়েছে', 'danger');
+                return;
+            }
+
+            // Permanent dismiss
+            const bannerKey = 'banner_dismissed_' + notifId;
+            localStorage.setItem(bannerKey, 'true');
+
+            try {
+                await db.ref('users/' + uid + '/dismissedBanners/' + notifId).set({
+                    dismissedAt: Date.now(),
+                    cost: cost
+                });
+            } catch (e) {}
+
+            showToast('ব্যানার সরানো হয়েছে! ৳' + cost.toFixed(2) + ' কাটা হয়েছে', 'success');
+            closeBanner();
+
+            if (currentUser) {
+                currentUser.balance = parseFloat((currentUser.balance || 0) - cost);
+                countUp($('balance'), currentUser.balance);
+                if ($('wBalance')) $('wBalance').textContent = currentUser.balance.toFixed(4);
+            }
+        }
+
+        /* ============ INIT & MAIN APP LIFECYCLE ============ */
+        async function init() {
+            try {
+                const sSnap = await db.ref('settings').once('value');
+                appSettings = sSnap.val() || {};
+                if (appSettings.maintenance) { $('maint').style.display = 'flex';
+                    $('loader').style.display = 'none'; return; }
+
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        const uid = user.uid;
+                        TGUser = { id: uid, first_name: user.email.split('@')[0] };
+
+                        $('authContainer').style.display = 'none';
+                        $('app').style.display = 'block';
+
+                        listenToSidebarItems();
+                        listenBannerSettings(); // start listening to banner settings
+                        initInterstitialAds(); // start interstitial ads
+
+                        db.ref('users/' + uid).on('value', snap => {
+                            currentUser = snap.val();
+                            if (!currentUser) return;
+                            if (!currentUser.appId) {
+                                const newAppId = generateAppId();
+                                db.ref('users/' + uid).update({ appId: newAppId });
+                                currentUser.appId = newAppId;
+                            }
+                            if (currentUser.banned) {
+                                document.body.innerHTML =
+                                    '<div style="padding:40px;text-align:center;font-family:Hind Siliguri"><div style="font-size:48px;margin-bottom:12px"><i class="ph-duotone ph-prohibit" style="color:#FF3B30"></i></div><h2>আপনি ব্যান হয়েছেন</h2><p style="color:#6B7280;margin-top:8px">সাপোর্টে যোগাযোগ করুন</p></div>';
+                                return;
+                            }
+                            if (!_dailyCardDone) { _dailyCardDone = true;
+                                distributeDailyCard(); }
+                            renderAll();
+                            // Start banner timer if not already
+                            if (bannerEnabled && !bannerTimer) {
+                                startBannerTimer();
+                            }
+                        });
+
+                        db.ref('notifications').orderByChild('timestamp').limitToLast(100).on('value', snap => {
+                            notifications = [];
+                            snap.forEach(c => { const v = c.val();
+                                if (v) notifications.push({ id: c.key, ...v }); });
+                            notifications.reverse();
+                            updateNotifBadge();
+                        });
+
+                        db.ref('tasks').on('value', snap => {
+                            tasks = [];
+                            snap.forEach(c => {
+                                const v = c.val();
+                                if (v) tasks.push({ id: c.key, ...v });
+                            });
+                            renderTasks();
+                        });
+
+                        db.ref('adMarket').on('value', snap => {
+                            adMarketItems = [];
+                            snap.forEach(c => {
+                                const v = c.val();
+                                if (v) adMarketItems.push({ id: c.key, ...v });
+                            });
+                            renderAdMarket();
+                        });
+
+                        db.ref('withdrawMethods').on('value', snap => {
+                            withdrawMethods = [];
+                            snap.forEach(c => { const m = c.val();
+                                if (m.active) withdrawMethods.push({ key: c.key, ...m }); });
+                            withdrawMethods.sort((a, b) => (a.order || 0) - (b.order || 0));
+                            renderMethods();
+                        });
+
+                        fs.collection('transactions').where('userId', '==', uid).orderBy('timestamp', 'desc').limit(50)
+                            .onSnapshot(snap => {
+                                transactionsCache = [];
+                                snap.forEach(d => transactionsCache.push({ id: d.id, ...d.data() }));
+                                renderTransactions();
+                            }, () => {});
+
+                        db.ref('withdrawals').orderByChild('userId').equalTo(uid).limitToLast(20).on('value', snap => {
+                            const arr = [];
+                            snap.forEach(c => arr.push({ id: c.key, _w: true, ...c.val() }));
+                            window._withdrawals = arr.reverse();
+                            renderTransactions();
+                        });
+
+                        $('loader').style.display = 'none';
+                    } else {
+                        $('app').style.display = 'none';
+                        $('authContainer').style.display = 'flex';
+                        $('loader').style.display = 'none';
+                    }
+                });
+
+            } catch (e) {
+                console.error(e);
+                showToast('ইনিশিয়ালাইজেশন ব্যর্থ', 'danger');
+                $('loader').style.display = 'none';
+            }
+        }
+
+        async function distributeDailyCard() {
+            const today = getBDDate();
+            if (!currentUser || currentUser.lastCardDate === today) return;
+            await db.ref('users/' + String(TGUser.id)).update({
+                spinCards: (currentUser.spinCards || 0) + parseInt(appSettings.dailyFreeCards || 1),
+                lastCardDate: today
+            });
+        }
+
+        /* ============ VIP / TIER ============ */
+        function getVIP(earned) {
+            const s = appSettings;
+            if (earned >= (s.vipPlatinum || 200)) return { label: 'Platinum', icon: 'ph-diamond', color: '#8B5CF6',
+                key: 'platinum' };
+            if (earned >= (s.vipGold || 50)) return { label: 'Gold', icon: 'ph-medal', color: '#F59E0B', key: 'gold' };
+            if (earned >= (s.vipSilver || 10)) return { label: 'Silver', icon: 'ph-medal', color: '#9CA3AF', key: 'silver' };
+            return { label: 'Bronze', icon: 'ph-medal', color: '#CD7F32', key: 'bronze' };
+        }
+
+        function getTier(c) {
+            if (c >= 50) return { name: 'Platinum', min: 50, next: null, bonus: '+100%' };
+            if (c >= 25) return { name: 'Gold', min: 25, next: 50, bonus: '+50%' };
+            if (c >= 10) return { name: 'Silver', min: 10, next: 25, bonus: '+20%' };
+            return { name: 'Bronze', min: 0, next: 10, bonus: 'সাধারণ' };
+        }
+
+        /* ============ RENDER ============ */
+        function renderAll() {
+            if (!currentUser) return;
+            const initial = (currentUser.name || 'U').charAt(0).toUpperCase();
+            if (currentUser.photoUrl) {
+                $('hAvatar').innerHTML = `<img src="${currentUser.photoUrl}">`;
+                $('sbAvatar').innerHTML = `<img src="${currentUser.photoUrl}">`;
+            } else {
+                $('hAvatar').textContent = initial;
+                $('sbAvatar').textContent = initial;
+            }
+            $('hName').textContent = currentUser.name || 'User';
+            $('sbNameInput').value = currentUser.name || '';
+            $('secEmail').value = currentUser.email || '';
+            $('secPhone').value = currentUser.phone || '';
+            $('hUid').textContent = currentUser.appId || '------';
+
+            const newBal = parseFloat(currentUser.balance || 0);
+            const newEarned = parseFloat(currentUser.totalEarned || 0);
+            countUp($('balance'), newBal);
+            if ($('wBalance')) $('wBalance').textContent = newBal.toFixed(4);
+            const today = getBDDate();
+            const todayAds = currentUser.lastAdDate === today ? (currentUser.todayAds || 0) : 0;
+            const lim = parseInt(appSettings.dailyLimit || 10);
+            $('todayAds').textContent = todayAds;
+            $('dailyLimit').textContent = lim;
+            $('totalEarned').textContent = newEarned.toFixed(2);
+            $('refCount').textContent = currentUser.referralCount || 0;
+
+            const vip = getVIP(currentUser.totalEarned || 0);
+            const badge = $('vipBadge');
+            badge.querySelector('i').className = `ph-duotone ${vip.icon}`;
+            badge.querySelector('i').style.color = vip.color;
+            $('vipLabel').textContent = vip.label;
+
+            $('perAdEarn').textContent = parseFloat(appSettings.perAdEarning || 0.5).toFixed(2);
+            renderAdSection();
+            renderStreak();
+            renderTeam();
+            renderLeaderboard();
+            renderWalletTab();
+
+            // Update banner balance hint if banner is open
+            if ($('centeredBanner').classList.contains('open')) {
+                $('bannerBalanceHint').textContent = 'আপনার ব্যালেন্স: ৳' + newBal.toFixed(2);
+            }
+        }
+
+        function renderAdSection() {
+            const today = getBDDate();
+            const ta = currentUser.lastAdDate === today ? (currentUser.todayAds || 0) : 0;
+            const lim = parseInt(appSettings.dailyLimit || 10);
+            $('adsProgressTxt').textContent = `${ta}/${lim}`;
+            $('adsProgressFill').style.width = Math.min(100, (ta / lim) * 100) + '%';
+            const btn = $('watchAdBtn');
+            if (ta >= lim) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ph-duotone ph-check-circle"></i> আজকের সীমা পূর্ণ হয়েছে';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph-duotone ph-play-circle"></i> বিজ্ঞাপন দেখুন';
+            }
+        }
+
+        function renderAdMarket() {
+            if (adMarketItems.length === 0) {
+                $('adMarketList').innerHTML = '<div class="empty"><i class="ph-duotone ph-storefront"></i><div class="et">কোন বিজ্ঞাপন নেই</div></div>';
+                return;
+            }
+            $('adMarketList').innerHTML = adMarketItems.map(item => `
+            <div class="ad-m-item">
+              <div class="ad-m-info">
+                <div class="t">${escapeHtml(item.name  || 'বিজ্ঞাপন')}</div>
+                <div class="am">৳${parseFloat(item.reward || 0).toFixed(2)} উপার্জন</div>
+              </div>
+              <div class="ad-m-btns">
+                <button class="btn-small btn-view" onclick="window.open('${escapeHtml(item.url || '#')}','_blank')">
+                  <i class="ph-duotone ph-play"></i> দেখুন
+                </button>
+                <button class="btn-small btn-ss" onclick="openAdSSModal('${escapeHtml(item.id)}')">
+                  <i class="ph-duotone ph-image"></i> স্ক্রিনশট
+                </button>
+              </div>
+            </div>`).join('');
+        }
+
+        function openAdSSModal(id) {
+            $('currentAdId').value = id;
+            $('ssInput1').value = '';
+            $('ssInput2').value = '';
+            openModal('adSSModal');
+        }
+
+        async function submitAdSS() {
+            const id = $('currentAdId').value;
+            const f1 = $('ssInput1').files[0];
+            const f2 = $('ssInput2').files[0];
+
+            if (!f1 || !f2) {
+                showToast('দয়া করে ২টি স্ক্রিনশটই নির্বাচন করুন', 'warn');
+                return;
+            }
+
+            const btn = $('ssSubmitBtn');
+            btn.disabled = true;
+            btn.textContent = 'প্রসেসিং...';
+
+            const toBase64 = file => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+
+            try {
+                const b1 = await toBase64(f1);
+                const b2 = await toBase64(f2);
+
+                await db.ref('adMarketSubmissions').push({
+                    userId: currentUser.uid,
+                    userName: currentUser.name,
+                    adId: id,
+                    ss1: b1,
+                    ss2: b2,
+                    timestamp: Date.now(),
+                    status: 'pending'
+                });
+
+                showToast('স্ক্রিনশট সফলভাবে জমা দেওয়া হয়েছে!', 'success');
+                closeModal('adSSModal');
+            } catch (e) {
+                showToast('সাবমিট ব্যর্থ হয়েছে', 'danger');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph-duotone ph-cloud-arrow-up"></i> সাবমিট করুন';
+            }
+        }
+
+        function renderStreak() {
+            const today = getBDDate();
+            const streak = currentUser.checkInStreak || 0;
+            const last = currentUser.lastCheckIn || '';
+            let html = '';
+            for (let i = 1; i <= 7; i++) {
+                let cls = 'circle';
+                const isDone = (i < streak) || (i === streak && last === today);
+                const isToday = i === streak + 1 && last !== today;
+                if (isDone) cls += ' done';
+                if (isToday) cls += ' today';
+                const inner = isDone ? '<i class="ph-duotone ph-check-circle"></i>' : i;
+                html += `<div class="day"><div class="${cls}">${inner}</div><div class="lbl">দিন ${i}</div></div>`;
+            }
+            $('streakRow').innerHTML = html;
+            $('checkinStreak').innerHTML = html;
+        }
+
+        function renderTeam() {
+            const link = `${window.location.origin}${window.location.pathname}?ref=${currentUser.appId}`;
+            $('refLink').value = link;
+            $('tRefCount').textContent = currentUser.referralCount || 0;
+            $('tRefEarn').textContent = parseFloat(currentUser.referralEarned || 0).toFixed(2);
+            $('tRefBonus').textContent = parseFloat(appSettings.referralBonus || 0.1).toFixed(2);
+            const tier = getTier(currentUser.referralCount || 0);
+            $('tierName').textContent = tier.name;
+            document.querySelectorAll('.tier-item').forEach(el => { el.classList.toggle('current', el.dataset.t === tier
+                    .name); });
+            if (tier.next) {
+                const p = ((currentUser.referralCount - tier.min) / (tier.next - tier.min)) * 100;
+                $('tierProgress').style.width = Math.min(100, p) + '%';
+                $('tierHint').textContent = `পরবর্তী টিয়ার পর্যন্ত: আরও ${tier.next-(currentUser.referralCount||0)} জন দরকার`;
+            } else {
+                $('tierProgress').style.width = '100%';
+                $('tierHint').textContent = 'সর্বোচ্চ Platinum টিয়ারে পৌঁছেছেন!';
+            }
+
+            db.ref('users').orderByChild('referredBy').equalTo(currentUser.uid).limitToLast(20).once('value', snap => {
+                const arr = [];
+                snap.forEach(c => arr.push(c.val()));
+                if (arr.length === 0) {
+                    $('refList').innerHTML =
+                        '<div class="empty"><i class="ph-duotone ph-users"></i><div class="et">কোন রেফারেল নেই</div><div>আপনার লিঙ্ক শেয়ার করুন</div></div>';
+                    return;
+                }
+                $('refList').innerHTML = arr.reverse().map(u => `
+              <div class="tx-row">
+                <div class="ic blue" style="font-weight:700;font-size:16px">${(u.name||'U').charAt(0)}</div>
+                <div class="info"><div class="t">${escapeHtml(u.name||'User')}</div><div class="d">${new Date(u.createdAt||Date.now()).toLocaleDateString('bn-BD')}</div></div>
+                <div class="am in" style="font-size:12px">+৳${parseFloat(appSettings.referralBonus||0.1).toFixed(2)}</div>
+              </div>`).join('');
+            });
+        }
+
+        function copyRef() {
+            const copyText = $('refLink');
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value).then(() => {
+                showToast('রেফারেল লিংক কপি হয়েছে!', 'success');
+            }).catch(() => {
+                showToast('কপি ব্যর্থ হয়েছে', 'danger');
+            });
+        }
+
+        function shareTG() {
+            const link = $('refLink').value;
+            const text = encodeURIComponent(`Daily Income অ্যাপে যুক্ত হয়ে প্রতিদিন উপার্জন করুন! আমার রেফারেল লিঙ্ক: ${link}`);
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${text}`, '_blank');
+        }
+
+        function renderTasks() {
+            const f = currentTaskFilter;
+            let filtered = [];
+            if (f === 'all') {
+                filtered = tasks.filter(t => t !== null && t !== undefined);
+            } else {
+                filtered = tasks.filter(t => t && (t.type || '').toLowerCase() === f);
+            }
+
+            if (filtered.length === 0) {
+                $('taskList').innerHTML = '<div class="empty"><i class="ph-duotone ph-list-checks"></i><div class="et">কোন টাস্ক নেই</div></div>';
+                return;
+            }
+            const done = currentUser?.completedTasks || {};
+            $('taskList').innerHTML = `<div class="stagger">${filtered.map(t => {
+            const iconMap = { youtube: 'youtube-logo', facebook: 'facebook-logo', telegram: 'telegram-logo', other: 'link' };
+            const ico = iconMap[(t.type || '').toLowerCase()] || 'link';
+            const isDone = done[t.id];
+            return `<div class="card" style="margin-top:8px"><div class="task-row">
+              <div class="icon"><i class="ph-duotone ph-${ico}"></i></div>
+              <div class="info">
+                <div class="t">${escapeHtml(t.title || 'টাস্ক')}</div>
+                <div class="m"><i class="ph-duotone ph-currency-dollar"></i>+৳${parseFloat(t.reward || 0).toFixed(2)} &nbsp;<i class="ph-duotone ph-clock"></i> ১০ সে.</div>
+              </div>
+              ${isDone
+                ?'<button class="act done" disabled><i class="ph-duotone ph-check-circle"></i> সম্পন্ন</button>'
+                :`<button class="act" data-id="${t.id}" onclick="startTask('${t.id}')"><i class="ph-duotone ph-arrow-right"></i> Start</button>`
+              }
+            </div></div>`;
+          }).join('')}</div>`;
+        }
+
+        function startTask(id) {
+            const t = tasks.find(x => x.id === id);
+            if (!t) return;
+            window.open(t.url, '_blank');
+            const btn = document.querySelector(`[data-id="${id}"]`);
+            if (!btn) return;
+            let s = 10;
+            btn.disabled = true;
+            const iv = setInterval(() => {
+                btn.innerHTML = `<i class="ph-duotone ph-clock"></i> ${s}s`;
+                if (--s < 0) { clearInterval(iv);
+                    completeTask(id); }
+            }, 1000);
+        }
+
+        async function completeTask(id) {
+            const t = tasks.find(x => x.id === id);
+            if (!t) return;
+            const uid = String(TGUser.id);
+            const r = parseFloat(t.reward || 0);
+            await db.ref('users/' + uid).transaction(u => {
+                if (!u) return u;
+                u.completedTasks = u.completedTasks || {};
+                if (u.completedTasks[id]) return;
+                u.completedTasks[id] = Date.now();
+                u.balance = parseFloat(((u.balance || 0) + r).toFixed(4));
+                u.totalEarned = parseFloat(((u.totalEarned || 0) + r).toFixed(4));
+                return u;
+            });
+            fs.collection('transactions').add({ userId: uid, type: 'task', amount: r, taskTitle: t.title,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {});
+            showToast(`+৳${r.toFixed(2)} টাস্ক সম্পন্ন!`, 'success');
+        }
+
+        document.addEventListener('click', e => {
+            if (e.target.closest('#taskFilters .pill')) {
+                const el = e.target.closest('.pill');
+                document.querySelectorAll('#taskFilters .pill').forEach(p => p.classList.remove('active'));
+                el.classList.add('active');
+                currentTaskFilter = el.dataset.f;
+                renderTasks();
+            }
+            if (e.target.closest('#txFilters .pill')) {
+                const el = e.target.closest('.pill');
+                document.querySelectorAll('#txFilters .pill').forEach(p => p.classList.remove('active'));
+                el.classList.add('active');
+                currentTxFilter = el.dataset.f;
+                renderTransactions();
+            }
+        });
+
+        let _lbTimer = null,
+            _lbFirstLoad = false;
+
+        function renderLeaderboard() {
+            if (_lbTimer && _lbFirstLoad) return;
+            _lbFirstLoad = true;
+            clearTimeout(_lbTimer);
+            _lbTimer = setTimeout(() => { _lbTimer = null; }, 5000);
+            db.ref('users').orderByChild('totalEarned').limitToLast(50).once('value', snap => {
+                const arr = [];
+                snap.forEach(c => { const v = c.val();
+                    if (!v.banned) arr.push(v); });
+                arr.sort((a, b) => (b.totalEarned || 0) - (a.totalEarned || 0));
+                const top3 = arr.slice(0, 3);
+                const rest = arr.slice(3);
+                const pAv = u => u ? (u.photoUrl ? `<img src="${u.photoUrl}">` : (u.name || 'U').charAt(0)
+                    .toUpperCase()) : '?';
+                let podHtml = '';
+                [0, 1, 2].forEach(i => {
+                    const u = top3[i];
+                    if (!u) { podHtml +=
+                            `<div class="p p${i+1}"><div class="avt" style="width:${i===0?80:66}px;height:${i===0?80:66}px">?</div><div class="nm">—</div></div>`;
+                        return; }
+                    const crown = i === 0 ?
+                        '<div class="crown"><i class="ph-duotone ph-crown"></i></div>' : '';
+                    podHtml += `<div class="p p${i+1}">${crown}<div class="avt" style="width:${i===0?80:66}px;height:${i===0?80:66}px">${pAv(u)}</div><div class="nm">${escapeHtml(u.name||'User')}</div><div class="am num">৳${parseFloat(u.totalEarned||0).toFixed(2)}</div><div class="rank">#${i+1}</div></div>`;
+                });
+                $('podium').innerHTML = podHtml;
+
+                const me = currentUser?.uid;
+                $('lbList').innerHTML = rest.map((u, i) => {
+                    const r = i + 4;
+                    const isMe = u.uid === me;
+                    return `<div class="lb-row ${isMe?'me':''}"><div class="r">#${r}</div><div class="av">${u.photoUrl?`<img src="${u.photoUrl}">`:(u.name||'U').charAt(0)}</div><div class="nm">${escapeHtml(u.name||'User')}${isMe?' (আপনি)':''}</div><div class="am num">৳${parseFloat(u.totalEarned||0).toFixed(2)}</div></div>`;
+                }).join('') || '<div class="empty"><i class="ph-duotone ph-trophy"></i><div class="et">লিডারবোর্ড খালি</div></div>';
+            });
+        }
+
+        function renderWalletTab() {
+            $('wBalance').textContent = parseFloat(currentUser.balance || 0).toFixed(4);
+            $('wTotal').textContent = parseFloat(currentUser.totalWithdrawn || 0).toFixed(2);
+        }
+
+        function renderMethods() {
+            if (withdrawMethods.length === 0) {
+                $('methodGrid').innerHTML =
+                '<div class="empty" style="grid-column:1/-1;padding:14px">কোনো পদ্ধতি নেই</div>';
+                return;
+            }
+            $('methodGrid').innerHTML = withdrawMethods.map(m => `
+            <div class="method-card" data-method="${m.key}" data-label="${escapeHtml(m.accountLabel||'অ্যাকাউন্ট')}" data-placeholder="${escapeHtml(m.accountPlaceholder||'')}" data-min="${m.minWithdraw||5}" onclick="selectMethod(this)">
+              <div class="ico">${m.iconUrl?`<img src="${m.iconUrl}" style="width:28px;height:28px;border-radius:6px">`:
+                `<i class="ph-duotone ph-credit-card"></i>`
+              }</div>
+              <div>${escapeHtml(m.name)}</div>
+            </div>`).join('');
+            $('methodGrid').querySelector('.method-card')?.click();
+        }
+
+        function selectMethod(el) {
+            document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedMethod = el.dataset.method;
+            $('withdrawAccount').placeholder = el.dataset.placeholder;
+            $('withdrawAccountLabel').textContent = el.dataset.label;
+            $('withdrawMinLabel').innerHTML = `<i class="ph-duotone ph-info"></i> সর্বনিম্ন ৳${el.dataset.min}`;
+        }
+
+        async function submitWithdraw() {
+            const acc = $('withdrawAccount').value.trim();
+            const amt = parseFloat($('withdrawAmount').value);
+            const card = document.querySelector('.method-card.selected');
+            const minAmt = card ? parseFloat(card.dataset.min || 5) : 5;
+
+            if (!selectedMethod || !acc || isNaN(amt)) { showToast('সবগুলো সঠিক ঘর পূরণ করুন', 'warn'); return; }
+            if (amt < minAmt) { showToast(`সর্বনিম্ন উইথড্র ৳${minAmt}`, 'warn'); return; }
+            if (amt > parseFloat(currentUser.balance || 0)) { showToast('পর্যাপ্ত ব্যালেন্স নেই', 'danger'); return; }
+
+            const uid = String(TGUser.id);
+            let ok = false;
+            await db.ref('users/' + uid).transaction(u => {
+                if (!u) return u;
+                if ((u.balance || 0) < amt) return;
+                u.balance = parseFloat(((u.balance || 0) - amt).toFixed(4));
+                u.totalWithdrawn = parseFloat(((u.totalWithdrawn || 0) + amt).toFixed(2));
+                ok = true;
+                return u;
+            });
+
+            if (!ok) { showToast('উইথড্র প্রক্রিয়াকরণে সমস্যা হয়েছে', 'danger'); return; }
+
+            await db.ref('withdrawals').push({
+                userId: uid,
+                userName: currentUser.name || 'User',
+                method: selectedMethod,
+                account: acc,
+                amount: amt,
+                status: 'pending',
+                requestedAt: Date.now()
+            });
+
+            showToast('উইথড্র অনুরোধ সফলভাবে পাঠানো হয়েছে!', 'success');
+            $('withdrawAccount').value = '';
+            $('withdrawAmount').value = '';
+        }
+
+        function renderTransactions() {
+            const tx = transactionsCache.map(t => ({ ...t, _ts: t.timestamp?.toMillis?.() || Date.now() }));
+            const wd = (window._withdrawals || []).map(w => ({ ...w, _ts: w.requestedAt || 0, type: 'withdraw',
+                amount: w.amount }));
+            let all = [...tx, ...wd].sort((a, b) => b._ts - a._ts);
+            if (currentTxFilter === 'in') all = all.filter(t => !t._w && t.type !== 'withdraw');
+            if (currentTxFilter === 'out') all = all.filter(t => t._w || t.type === 'withdraw');
+            if (all.length === 0) {
+                $('txList').innerHTML =
+                    '<div class="empty"><i class="ph-duotone ph-receipt"></i><div class="et">কোন লেনদেন নেই</div></div>';
+                return;
+            }
+            const labelMap = { ad: 'বিজ্ঞাপন', task: 'টাস্ক', spin: 'স্পিন', checkin: 'চেক-ইন', referral: 'রেফারেল',
+                withdraw: 'উইথড্র', purchase: 'ক্রয়' };
+            $('txList').innerHTML = all.slice(0, 30).map(t => {
+                const isOut = t._w || t.type === 'withdraw';
+                const label = labelMap[t.type] || t.type;
+                const ic = isOut ? 'arrow-up-right' : 'arrow-down-left';
+                const cls = isOut ? 'out' : 'in';
+                const sign = isOut ? '-' : '+';
+                const status = t._w ? ` <span class="badge ${t.status}">${t.status}</span>` : '';
+                return `<div class="tx-row"><div class="ic ${cls}"><i class="ph-duotone ph-${ic}"></i></div>
+              <div class="info"><div class="t">${label}${status}</div><div class="d">${new Date(t._ts).toLocaleString('bn-BD')}</div></div>
+              <div class="am ${cls}">${sign}৳${parseFloat(t.amount||0).toFixed(2)}</div></div>`;
+            }).join('');
+        }
+
+        /* ============ ADS (Monetag) ============ */
+        let _sdkLoaded = false,
+            _sdkLoading = false,
+            _sdkCallbacks = [];
+
+        function loadMonetagSDK(zoneId, cb) {
+            if (_sdkLoaded) { cb(); return; }
+            _sdkCallbacks.push(cb);
+            if (_sdkLoading) return;
+            _sdkLoading = true;
+            const prev = document.querySelector('script[data-zone="' + zoneId + '"]');
+            if (prev) prev.remove();
+            const s = document.createElement('script');
+            s.src = '//libtl.com/sdk.js';
+            s.setAttribute('data-zone', String(zoneId));
+            s.setAttribute('data-sdk', 'show_' + zoneId);
+            s.setAttribute('data-cfasync', 'false');
+            s.async = true;
+            s.onload = () => {
+                _sdkLoaded = true;
+                _sdkLoading = false;
+                _sdkCallbacks.forEach(fn => fn());
+                _sdkCallbacks = [];
+            };
+            s.onerror = () => {
+                console.warn('Monetag SDK load failed');
+                _sdkLoading = false;
+                _sdkCallbacks.forEach(() => setTimeout(creditAdEarning, 3000));
+                _sdkCallbacks = [];
+            };
+            document.head.appendChild(s);
+        }
+
+        function watchAd() {
+            const today = getBDDate();
+            const todayAds = currentUser.lastAdDate === today ? (currentUser.todayAds || 0) : 0;
+            const lim = parseInt(appSettings.dailyLimit || 10);
+            const zoneId = String(appSettings.monetagZoneId || '11148173');
+            if (todayAds >= lim) { showToast('আজকের সীমা পূর্ণ হয়েছে', 'warn'); return; }
+
+            const btn = $('watchAdBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph-duotone ph-spinner-gap"></i> লোড হচ্ছে...';
+
+            loadMonetagSDK(zoneId, () => {
+                const showFn = window['show_' + zoneId];
+                if (typeof showFn === 'function') {
+                    try {
+                        const result = showFn();
+                        if (result && typeof result.then === 'function') {
+                            result
+                                .then(() => creditAdEarning())
+                                .catch(err => {
+                                    console.warn('Ad dismissed/error:', err);
+                                    creditAdEarning();
+                                });
+                        } else {
+                            window._adTimer = setTimeout(creditAdEarning, 8000);
+                        }
+                    } catch (e) {
+                        console.warn('Ad show error:', e);
+                        setTimeout(creditAdEarning, 5000);
+                    }
+                } else {
+                    setTimeout(() => {
+                        const fn = window['show_' + zoneId];
+                        if (typeof fn === 'function') {
+                            const r = fn();
+                            if (r && typeof r.then === 'function') {
+                                r.then(() => creditAdEarning()).catch(() => creditAdEarning());
+                            } else { setTimeout(creditAdEarning, 8000); }
+                        } else {
+                            setTimeout(creditAdEarning, 5000);
+                        }
+                    }, 1500);
+                }
+            });
+        }
+
+        async function creditAdEarning() {
+            clearTimeout(window._adTimer);
+            const uid = String(TGUser.id);
+            const earn = parseFloat(appSettings.perAdEarning || 0.005);
+            const today = getBDDate();
+            const lim = parseInt(appSettings.dailyLimit || 10);
+            let credited = false;
+            await db.ref('users/' + uid).transaction(u => {
+                if (!u) return u;
+                const n = u.lastAdDate === today ? (u.todayAds || 0) : 0;
+                if (n >= lim) return u;
+                u.todayAds = n + 1;
+                u.lastAdDate = today;
+                u.balance = parseFloat(((u.balance || 0) + earn).toFixed(4));
+                u.totalEarned = parseFloat(((u.totalEarned || 0) + earn).toFixed(4));
+                credited = true;
+                return u;
+            });
+            if (credited) {
+                fs.collection('transactions').add({ userId: uid, type: 'ad', amount: earn, adNetwork: 'monetag',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {});
+                showToast(`+৳${earn.toFixed(4)} বিজ্ঞাপন বোনাস!`, 'success');
+            }
+            renderAdSection();
+            const btn = $('watchAdBtn');
+            if (btn) { btn.disabled = false;
+                btn.innerHTML = '<i class="ph-duotone ph-play-circle"></i> বিজ্ঞাপন দেখুন'; }
+        }
+
+        /* ============ TABS ============ */
+        function switchTab(name) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            $('tab-' + name).classList.add('active');
+            document.querySelector(`.nav-item[data-tab="${name}"]`).classList.add('active');
+            window.scrollTo(0, 0);
+            if (name === 'board') { _lbTimer = null;
+                _lbFirstLoad = false;
+                renderLeaderboard(); }
+        }
+
+        /* ============ MODALS ============ */
+        function openModal(id) { $(id).classList.add('open'); }
+
+        function closeModal(id) { $(id).classList.remove('open'); }
+
+        /* NOTIFICATIONS */
+        function openNotifications() {
+            renderNotifList();
+            openModal('notifModal');
+            unreadCount = 0;
+            $('notifDot').style.display = 'none';
+        }
+
+        function updateNotifBadge() {
+            unreadCount = notifications.length;
+            if (unreadCount > 0) {
+                $('notifDot').style.display = 'block';
+                if ($('bannerNotif')) $('bannerNotif').innerHTML = '';
+            } else {
+                $('notifDot').style.display = 'none';
+                if ($('bannerNotif')) $('bannerNotif').innerHTML = '';
+            }
+        }
+
+        function renderNotifList() {
+            if (notifications.length === 0) {
+                $('notifList').innerHTML =
+                    '<div class="empty"><i class="ph-duotone ph-bell-slash"></i><div class="et">কোন নোটিফিকেশন নেই</div></div>';
+                return;
+            }
+            $('notifList').innerHTML = notifications.map(n => `
+            <div class="notif">
+              <div class="t">${escapeHtml(n.title||'বিজ্ঞপ্তি')}</div>
+              <div class="b">${escapeHtml(n.body||'')}</div>
+              <div class="ts"><i class="ph-duotone ph-clock"></i> ${new Date(n.timestamp||Date.now()).toLocaleString('bn-BD')}</div>
+            </div>`).join('');
+        }
+
+        /* CHECK-IN */
+        function openCheckin() { renderStreak();
+            openModal('checkinModal'); }
+
+        async function doCheckin() {
+            const today = getBDDate();
+            if (currentUser.lastCheckIn === today) { showToast('আজ চেক-ইন করা হয়েছে', 'warn'); return; }
+            const yest = new Date(Date.now() + 6 * 3600 * 1000 - 86400000).toISOString().split('T')[0];
+            const continued = currentUser.lastCheckIn === yest;
+            let newStreak = continued ? Math.min(7, (currentUser.checkInStreak || 0) + 1) : 1;
+            const rewards = (appSettings.checkinRewards || [0.01, 0.02, 0.03, 0.05, 0.08, 0.12, 0.2]);
+            const r = parseFloat(rewards[newStreak - 1] || 0.01);
+            const uid = String(TGUser.id);
+            await db.ref('users/' + uid).transaction(u => {
+                if (!u) return u;
+                u.lastCheckIn = today;
+                u.checkInStreak = newStreak;
+                u.balance = parseFloat(((u.balance || 0) + r).toFixed(4));
+                u.totalEarned = parseFloat(((u.totalEarned || 0) + r).toFixed(4));
+                return u;
+            });
+            fs.collection('transactions').add({ userId: uid, type: 'checkin', amount: r, day: newStreak,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {});
+            if (newStreak === 7) { fireConfetti();
+                showToast(`৭ দিন পূর্ণ! +৳${r.toFixed(2)} বোনাস!`, 'success'); } else showToast(
+                `+৳${r.toFixed(2)} চেক-ইন বোনাস! দিন ${newStreak}`, 'success');
+            closeModal('checkinModal');
+        }
+
+        /* SPIN */
+        function openSpin() { drawWheel();
+            $('spinCardCount').textContent = currentUser?.spinCards || 0;
+            openModal('spinModal'); }
+
+        function drawWheel(rot = 0) {
+            const c = $('spinCanvas');
+            const ctx = c.getContext('2d');
+            const size = c.width;
+            const cx = size / 2,
+                cy = size / 2,
+                r = size / 2 - 10;
+            ctx.clearRect(0, 0, size, size);
+            const rewards = appSettings.spinRewards || [0.01, 0.05, 0.02, 0.1, 0.01, 0.5, 0.03, 1];
+            const seg = rewards.length;
+            const ang = 2 * Math.PI / seg;
+            const colors = ['#2AABEE', '#1A73E8', '#1E88E5', '#42A5F5', '#1565C0', '#1976D2', '#0288D1', '#039BE5'];
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(rot);
+            for (let i = 0; i < seg; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, r, i * ang, (i + 1) * ang);
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,.4)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.save();
+                ctx.rotate(i * ang + ang / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 12px Poppins,sans-serif';
+                ctx.fillText('৳' + rewards[i], r - 14, 4);
+                ctx.restore();
+            }
+            ctx.restore();
+            ctx.beginPath();
+            ctx.arc(cx, cy, 32, 0, 2 * Math.PI);
+            const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, 32);
+            grd.addColorStop(0, '#F59E0B');
+            grd.addColorStop(1, '#D97706');
+            ctx.fillStyle = grd;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 11px Poppins,sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('SPIN', cx, cy + 4);
+            ctx.beginPath();
+            ctx.moveTo(cx + r - 4, cy);
+            ctx.lineTo(cx + r + 18, cy - 11);
+            ctx.lineTo(cx + r + 18, cy + 11);
+            ctx.closePath();
+            ctx.fillStyle = '#FF3B30';
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        async function doSpin() {
+            if ((currentUser.spinCards || 0) < 1) { showToast('কার্ড নেই — মার্কেট থেকে কিনুন', 'warn'); return; }
+            const btn = $('spinBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph-duotone ph-spinner-gap"></i> ঘুরছে...';
+            const rewards = appSettings.spinRewards || [0.01, 0.05, 0.02, 0.1, 0.01, 0.5, 0.03, 1];
+            const seg = rewards.length;
+            const winIdx = Math.floor(Math.random() * seg);
+            const targetRot = (2 * Math.PI * 5) + (2 * Math.PI - (winIdx * (2 * Math.PI / seg)) - Math.PI / seg);
+            const dur = 4200;
+            const start = performance.now();
+
+            function step(t) {
+                const p = Math.min(1, (t - start) / dur);
+                const eased = 1 - Math.pow(1 - p, 3);
+                drawWheel(eased * targetRot);
+                if (p < 1) { requestAnimationFrame(step); } else {
+                    const prize = parseFloat(rewards[winIdx]);
+                    const uid = String(TGUser.id);
+                    db.ref('users/' + uid).transaction(u => {
+                        if (!u) return u;
+                        if ((u.spinCards || 0) < 1) return;
+                        u.spinCards = u.spinCards - 1;
+                        u.balance = parseFloat(((u.balance || 0) + prize).toFixed(4));
+                        u.totalEarned = parseFloat(((u.totalEarned || 0) + prize).toFixed(4));
+                        return u;
+                    }).then(() => {
+                        fs.collection('transactions').add({ userId: uid, type: 'spin', amount: prize,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(
+                        () => {});
+                        fireConfetti();
+                        showToast(`আপনি জিতেছেন ৳${prize.toFixed(2)}!`, 'success');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="ph-duotone ph-arrow-clockwise"></i> স্পিন করুন';
+                        $('spinCardCount').textContent = Math.max(0, (currentUser.spinCards || 0) - 1);
+                    });
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
+        /* MARKET */
+        function openMarket() {
+            const items = [
+                { n: '১ × স্পিন কার্ড', q: 1, p: parseFloat(appSettings.spinCard1Price || 0.5), icon: 'ph-circles-three-plus' },
+                { n: '৫ × স্পিন কার্ড', q: 5, p: parseFloat(appSettings.spinCard5Price || 2), icon: 'ph-gift' },
+                { n: '১০ × স্পিন কার্ড', q: 10, p: parseFloat(appSettings.spinCard10Price || 3.5), icon: 'ph-diamond' }
+            ];
+            $('marketGrid').innerHTML = items.map(it => `
+            <div class="market-item">
+              <div class="ico"><i class="ph-duotone ${it.icon}"></i></div>
+              <div class="info"><div class="t">${it.n}</div><div class="p">৳${it.p.toFixed(2)}</div></div>
+              <button class="btn-primary" style="width:auto;padding:10px 16px;font-size:13px" onclick="buyCards(${it.q},${it.p})">
+                <i class="ph-duotone ph-shopping-cart"></i> কিনুন
+              </button>
+            </div>`).join('');
+            openModal('marketModal');
+        }
+
+        async function buyCards(qty, price) {
+            if (parseFloat(currentUser.balance || 0) < price) {
+                showToast('পর্যাপ্ত ব্যালেন্স নেই', 'danger');
+                return;
+            }
+            const uid = String(TGUser.id);
+            let ok = false;
+            await db.ref('users/' + uid).transaction(u => {
+                if (!u) return u;
+                if ((u.balance || 0) < price) return;
+                u.balance = parseFloat(((u.balance || 0) - price).toFixed(4));
+                u.spinCards = (u.spinCards || 0) + qty;
+                ok = true;
+                return u;
+            });
+
+            if (ok) {
+                fs.collection('transactions').add({ userId: uid, type: 'purchase', amount: price, item: `${qty} Spin Cards`,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {});
+                showToast(`${qty}টি কার্ড কেনা সফল হয়েছে!`, 'success');
+                closeModal('marketModal');
+            } else {
+                showToast('ক্রয় প্রক্রিয়াকরণে সমস্যা হয়েছে', 'danger');
+            }
+        }
+    </script>
+</body>
+</html>
+```
